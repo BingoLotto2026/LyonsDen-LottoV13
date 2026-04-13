@@ -236,6 +236,48 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
 
 .empty{text-align:center;padding:34px 20px;color:var(--muted);}
 .empty-ic{font-size:2.8rem;display:block;margin-bottom:10px;}
+
+  /* ── Den Board Leaderboard ── */
+  .den-row { background:var(--card);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:12px 13px 8px;margin-bottom:10px;transition:all .4s ease;position:relative;overflow:hidden; }
+  .den-row.den-leader { border-color:rgba(255,215,0,.35);background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(139,0,0,.04)); }
+  .den-row.den-winner { border-color:var(--gold);background:linear-gradient(135deg,rgba(255,215,0,.13),rgba(139,0,0,.07));animation:winnerPulse 2s ease-in-out infinite; }
+  @keyframes winnerPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.2)} 50%{box-shadow:0 0 18px 4px rgba(255,215,0,.35)} }
+  .den-row-top { display:flex;align-items:center;gap:9px;margin-bottom:8px; }
+  .den-rank { font-family:'Bebas Neue',cursive;font-size:1.4rem;min-width:28px;text-align:center;line-height:1; }
+  .den-av { width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:rgba(255,255,255,.05); }
+  .den-av img { width:100%;height:100%;object-fit:cover; }
+  .den-info { flex:1;min-width:0; }
+  .den-name { font-weight:900;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .den-score { font-size:.68rem;color:var(--muted);margin-top:2px; }
+  .den-badge { font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1px;padding:3px 9px;border-radius:8px;white-space:nowrap; }
+  .den-badge-gold { background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000; }
+  .den-badge-red { background:linear-gradient(135deg,var(--red),#8B0000);color:#fff; }
+  .den-badge-grey { background:rgba(255,255,255,.08);color:rgba(255,255,255,.5); }
+  .hot-badge { font-size:.65rem;background:linear-gradient(135deg,#FF4500,#FF8C00);color:#fff;padding:2px 7px;border-radius:6px;font-weight:900;margin-left:5px;animation:hotPulse .9s ease-in-out infinite; }
+  @keyframes hotPulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+  .jackpot-badge { font-size:.65rem;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;padding:2px 8px;border-radius:6px;font-weight:900;margin-left:5px; }
+
+  /* Number balls on leaderboard */
+  .den-balls { display:flex;flex-wrap:wrap;gap:4px;margin-top:0; }
+  .den-set-label { font-size:.6rem;color:rgba(255,215,0,.5);font-weight:800;letter-spacing:1px;margin-bottom:3px;margin-top:2px; }
+  .p-ball { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);transition:all .6s cubic-bezier(.34,1.56,.64,1);position:relative; }
+  .p-ball.p-hit { background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,.5);transform:scale(1.15);color:#1a0000; }
+  .p-ball.p-hit-new { animation:ballReveal .8s cubic-bezier(.34,1.56,.64,1) forwards; }
+  @keyframes ballReveal { 0%{transform:scale(1);background:rgba(255,255,255,.05);box-shadow:none;color:rgba(255,255,255,.4)} 40%{transform:scale(1.4);background:linear-gradient(135deg,#fff,#FFD700);box-shadow:0 0 20px rgba(255,215,0,.9)} 100%{transform:scale(1.15);background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a0000;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,.5)} }
+
+  /* Progress bar */
+  .den-prog-wrap { background:rgba(255,255,255,.06);border-radius:6px;height:5px;margin-top:7px;overflow:hidden; }
+  .den-prog-fill { height:100%;border-radius:6px;background:linear-gradient(90deg,var(--red),#FFD700);transition:width .8s ease; }
+
+  /* Reveal overlay */
+  #reveal-overlay { position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px; }
+  .reveal-ball { width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FF8C00);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:1.8rem;color:#1a0000;box-shadow:0 0 30px rgba(255,215,0,.6);animation:revealBounce .6s cubic-bezier(.34,1.56,.64,1) forwards; }
+  @keyframes revealBounce { 0%{transform:scale(0) rotate(-180deg);opacity:0} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+  .reveal-ripple { position:absolute;width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,215,0,.4);animation:ripple 1s ease-out infinite; }
+  @keyframes ripple { 0%{transform:scale(1);opacity:.6} 100%{transform:scale(2.5);opacity:0} }
+
+
+  @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
 </style>
 </head>
 <body>
@@ -290,6 +332,40 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
         </div>
       </div>
     </div>
+  </div>
+
+  
+  <!-- Add to Home Screen Banner -->
+  <div id="a2hs-banner" style="display:none;margin:10px 16px 0;background:linear-gradient(135deg,rgba(106,13,173,.18),rgba(139,0,0,.12));border:1px solid rgba(255,215,0,.25);border-radius:14px;padding:13px 14px;position:relative;animation:slideDown .4s ease;">
+    <button onclick="dismissA2HS()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:rgba(255,255,255,.4);font-size:1rem;cursor:pointer;line-height:1;">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="font-size:1.4rem;">📲</div>
+      <div>
+        <div style="font-family:Bebas Neue,cursive;font-size:.95rem;letter-spacing:1.5px;color:var(--gold);">Add to Your Home Screen!</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.55);">One tap access — no typing the address every time</div>
+      </div>
+    </div>
+    <div id="a2hs-iphone" style="display:none;background:rgba(255,255,255,.05);border-radius:10px;padding:10px 12px;">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.85);line-height:2;">
+        <div>1️⃣ &nbsp;Tap the <strong style="color:#fff;">Share button</strong> <span style="font-size:.85rem;">⬆️</span> at the bottom of Safari</div>
+        <div>2️⃣ &nbsp;Scroll down and tap <strong style="color:#fff;">"Add to Home Screen"</strong></div>
+        <div>3️⃣ &nbsp;Tap <strong style="color:#fff;">Add</strong> — done! 🦁</div>
+      </div>
+    </div>
+    <div id="a2hs-android" style="display:none;background:rgba(255,255,255,.05);border-radius:10px;padding:10px 12px;">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.85);line-height:2;">
+        <div>1️⃣ &nbsp;Tap the <strong style="color:#fff;">three-dot menu</strong> <span style="font-size:.85rem;">⋮</span> at the top right of Chrome</div>
+        <div>2️⃣ &nbsp;Tap <strong style="color:#fff;">"Add to Home Screen"</strong></div>
+        <div>3️⃣ &nbsp;Tap <strong style="color:#fff;">Add</strong> — done! 🦁</div>
+      </div>
+    </div>
+    <div id="a2hs-other" style="display:none;background:rgba(255,255,255,.05);border-radius:10px;padding:10px 12px;">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.85);line-height:2;">
+        <div>📱 &nbsp;<strong style="color:#fff;">iPhone/Safari:</strong> Tap Share ⬆️ → "Add to Home Screen"</div>
+        <div>🤖 &nbsp;<strong style="color:#fff;">Android/Chrome:</strong> Tap ⋮ menu → "Add to Home Screen"</div>
+      </div>
+    </div>
+    <button onclick="dismissA2HS()" style="width:100%;margin-top:9px;padding:8px;border-radius:9px;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.08);color:var(--gold);font-size:.75rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Got it! Thanks 👍</button>
   </div>
 
   <!-- Notify Me — BELOW the banner -->
@@ -656,27 +732,53 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
 
 <!-- RESULTS -->
 <div class="page" id="page-results">
-  <div style="background:linear-gradient(135deg,#0A001A,#150010);padding:18px;border-bottom:2px solid rgba(255,215,0,.12);">
-    <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px;">
+  <!-- Den Board Header -->
+  <div style="background:linear-gradient(135deg,#0A001A,#1a0005);padding:16px 16px 12px;border-bottom:2px solid rgba(255,215,0,.15);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <button class="back-btn" onclick="showPage('home')">←</button>
-      <div class="page-title">🏆 Results</div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+      <div>
+        <div class="page-title" style="margin:0;">🦁 The Den Board</div>
+        <div style="font-size:.62rem;color:rgba(255,215,0,.5);letter-spacing:1px;">LIVE LEADERBOARD</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
         <div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1s infinite;"></div>
         <span style="font-size:.6rem;color:var(--green);font-weight:800;">LIVE</span>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:5px;">
-      <div id="results-draw-label" style="font-size:.8rem;color:var(--muted);">No active draw yet</div>
-      <button onclick="renderResults()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1px solid rgba(0,230,118,.3);background:rgba(0,230,118,.08);color:var(--green);font-family:Montserrat,sans-serif;font-weight:700;font-size:.64rem;cursor:pointer;">🔄 Refresh</button>
+
+    <!-- Current Draw Numbers -->
+    <div id="results-draw-label" style="font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:6px;">No active draw yet</div>
+    <div id="results-draw-balls" class="draw-balls-row" style="justify-content:center;"></div>
+    <div id="last-refresh" style="text-align:center;font-size:.58rem;color:rgba(255,255,255,.25);margin-top:5px;"></div>
+
+    <!-- Refresh -->
+    <div style="text-align:center;margin-top:8px;">
+      <button onclick="renderResults()" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1px solid rgba(0,230,118,.3);background:rgba(0,230,118,.07);color:var(--green);font-family:Montserrat,sans-serif;font-weight:700;font-size:.65rem;cursor:pointer;">🔄 Refresh Board</button>
     </div>
-    <div id="last-refresh" style="text-align:center;font-size:.61rem;color:var(--muted);margin-bottom:3px;"></div>
-    <div id="results-draw-balls" class="draw-balls-row"></div>
   </div>
-  <div class="section-pad">
+
+  <!-- Player Lookup -->
+  <div style="padding:12px 16px 0;">
+    <div style="background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.12);border-radius:12px;padding:11px 13px;">
+      <div style="font-size:.72rem;color:var(--gold);font-weight:800;margin-bottom:6px;">🔍 Find My Card</div>
+      <div style="display:flex;gap:7px;">
+        <input id="player-lookup-input" type="text" placeholder="Type your name..." style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:7px 10px;color:#fff;font-family:Montserrat,sans-serif;font-size:.78rem;outline:none;">
+        <button onclick="lookupPlayer()" style="padding:7px 13px;border-radius:8px;border:none;background:var(--gold);color:#000;font-weight:900;font-size:.75rem;cursor:pointer;font-family:Montserrat,sans-serif;">GO</button>
+      </div>
+      <div id="player-lookup-result" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="section-pad" style="padding-top:12px;">
     <div id="winner-banner-results"></div>
-    <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">Hall of Fame — Past Winners</div>
-    <div id="hall-of-fame" style="margin-bottom:16px;"></div>
-    <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">Current Game — Leaderboard</div>
+    <!-- Hall of Fame -->
+    <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">🏆 Hall of Fame</div>
+    <div id="hall-of-fame" style="margin-bottom:18px;"></div>
+    <!-- Den Board -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);">Current Game — Den Board</div>
+      <div id="player-count-badge" style="font-size:.65rem;color:rgba(255,255,255,.4);"></div>
+    </div>
     <div id="leaderboard"></div>
   </div>
 </div>
@@ -780,6 +882,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
       <div class="picked-row" id="host-draw-picked"></div>
       <div class="num-grid" id="host-draw-grid"></div>
       <button class="btn btn-gold" id="host-run-draw" onclick="runDraw()" style="width:100%;" disabled>🎱 Run This Draw!</button>
+      <button class="btn" onclick="triggerReveal()" style="background:linear-gradient(135deg,#6A0DAD,#3D0070);color:#fff;font-weight:900;margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">🎰 Drop the Numbers — Trigger Reveal</button>
     </div>
     <div id="host-player-list"></div>
   </div>
@@ -842,7 +945,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">8. DISPUTES</div>
-      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">The host's decision on all game matters is final. Disputes must be submitted in writing to <strong style="color:var(--gold);">Bingolotto.game@gmail.com</strong> within 48 hours of the disputed event.</p>
+      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">The host's decision on all game matters is final. Disputes must be submitted in writing to <strong style="color:var(--gold);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b5972757c7477746f6f74357c7a767e5b7c767a727735787476">[email&#160;protected]</a></strong> within 48 hours of the disputed event.</p>
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">9. REFUND POLICY</div>
@@ -862,7 +965,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">13. CONTACT</div>
-      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">For questions, disputes, or support:<br><strong style="color:var(--gold);">&#128231; Bingolotto.game@gmail.com</strong><br><strong style="color:var(--gold);">&#128248; @iamprettylyon</strong></p>
+      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">For questions, disputes, or support:<br><strong style="color:var(--gold);">&#128231; <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="99dbf0f7fef6f5f6ededf6b7fef8f4fcd9fef4f8f0f5b7faf6f4">[email&#160;protected]</a></strong><br><strong style="color:var(--gold);">&#128248; @iamprettylyon</strong></p>
     </div>
     <button class="btn btn-outline" onclick="showPage('home')" style="width:100%;">&#8592; Back to Home</button>
   </div>
@@ -897,7 +1000,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">YOUR RIGHTS</div>
-      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">You may request to have your email removed from our notification list or your player data deleted. Contact us at <strong style="color:var(--gold);">Bingolotto.game@gmail.com</strong></p>
+      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">You may request to have your email removed from our notification list or your player data deleted. Contact us at <strong style="color:var(--gold);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="63210a0d040c0f0c17170c4d04020e0623040e020a0f4d000c0e">[email&#160;protected]</a></strong></p>
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">PAYMENTS</div>
@@ -905,12 +1008,23 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">CONTACT</div>
-      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">Privacy questions:<br><strong style="color:var(--gold);">&#128231; Bingolotto.game@gmail.com</strong></p>
+      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">Privacy questions:<br><strong style="color:var(--gold);">&#128231; <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ac8e3e4ede5e6e5fefee5a4edebe7efcaede7ebe3e6a4e9e5e7">[email&#160;protected]</a></strong></p>
     </div>
     <button class="btn btn-outline" onclick="showPage('home')" style="width:100%;">&#8592; Back to Home</button>
   </div>
 </div>
 
+
+<!-- REVEAL OVERLAY -->
+<div id="reveal-overlay">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.6rem;letter-spacing:3px;color:var(--gold);">🦁 THE NUMBERS DROP</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">This month's winning draw</div>
+  </div>
+  <div id="reveal-balls-row" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;min-height:64px;"></div>
+  <div id="reveal-status" style="font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:2px;color:rgba(255,255,255,.6);text-align:center;margin-bottom:20px;min-height:28px;"></div>
+  <button id="reveal-close-btn" onclick="closeReveal()" style="display:none;padding:13px 32px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--red),#8B0000);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;font-family:Montserrat,sans-serif;">View The Den Board 🏆</button>
+</div>
 
 </div><!-- /app -->
 
@@ -1530,36 +1644,192 @@ function startResultsTimer(){
   resultsTimer=setInterval(function(){var rp=el('page-results');if(rp&&rp.classList.contains('active'))renderResults();},30000);
 }
 
-function renderResults(){
-  var draw=S.currentDraw!==null?S.draws[S.currentDraw]:null;
-  var lbl=el('results-draw-label'),bls=el('results-draw-balls'),lr=el('last-refresh');
-  if(lbl) lbl.textContent=draw?('Active Draw: '+(draw.date||'No date')):'No active draw yet';
-  if(bls) bls.innerHTML=draw?draw.numbers.map(function(n){return '<div class="d-ball">'+n+'</div>';}).join(''):'';
-  if(lr) lr.textContent='Updated: '+new Date().toLocaleTimeString();
-  var scored=S.players.filter(function(p){return p.confirmed||p.paid;}).map(function(p){
-    var mA=draw?matchCount(p.setA,draw.numbers):0,mB=draw?matchCount(p.setB,draw.numbers):0;
-    return {id:p.id,name:p.name,avatar:p.avatar,isPhoto:p.isPhoto,isFree:p.isFree,isMerch:p.isMerch,setA:p.setA,setB:p.setB,mA:mA,mB:mB,best:Math.max(mA,mB),won:mA===6||mB===6};
-  }).sort(function(a,b){return b.best-a.best||a.name.localeCompare(b.name);});
-  var winners=scored.filter(function(p){return p.won;});
-  var wb=el('winner-banner-results');
-  if(wb){
-    if(winners.length){
-      wb.innerHTML='<div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(139,0,0,.06));border:2px solid var(--gold);border-radius:13px;padding:16px;text-align:center;margin-bottom:14px;"><div style="font-size:2.2rem;">🏆</div><div class="bebas" style="font-size:1.3rem;background:linear-gradient(135deg,#FFF0A0,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">WINNER'+(winners.length>1?'S':'')+'!</div>'+winners.map(function(w){return '<div style="margin-top:9px;background:rgba(255,215,0,.07);border-radius:9px;padding:9px;"><div style="font-family:Dancing Script,cursive;font-size:1.3rem;color:var(--gold);">'+w.name+'</div><div style="font-size:.73rem;color:rgba(255,255,255,.5);">'+(w.mA===6?'Set A ✅':'')+' '+(w.mB===6?'Set B ✅':'')+'</div></div>';}).join('')+'<button onclick="showLatestWinner()" style="display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:11px;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--red),#8B0000);color:#fff;font-weight:900;font-size:.88rem;cursor:pointer;">🎉 Show Winner Screen!</button></div>';
-    } else wb.innerHTML='';
+function buildDenBoard(scored, draw, animate) {
+  var lb = el('leaderboard'); if (!lb) return;
+  if (!scored.length) {
+    lb.innerHTML = '<div class="empty"><span class="empty-ic">🦁</span><p>No confirmed players yet.</p></div>';
+    return;
   }
-  var lb=el('leaderboard'); if(!lb) return;
-  if(!scored.length){lb.innerHTML='<div class="empty"><span class="empty-ic">🦁</span><p>No confirmed players yet.</p></div>';return;}
-  lb.innerHTML=scored.map(function(p,i){
-    var avHTML=p.isPhoto?'<img src="'+p.avatar+'">':p.avatar;
-    var rankClr=p.won?'#FFD700':i===1?'#aaa':i===2?'#cd7f32':'var(--muted)';
-    var typeTag=p.isMerch?'<span style="font-size:.6rem;background:linear-gradient(135deg,#FF8C00,#FF6D00);color:#fff;padding:1px 6px;border-radius:7px;font-weight:800;margin-left:4px;">🛍️</span>':p.isFree?'<span style="font-size:.6rem;background:linear-gradient(135deg,var(--purple),#3D0070);color:#fff;padding:1px 6px;border-radius:7px;font-weight:800;margin-left:4px;">🆓</span>':'';
-    var pct=Math.round(p.best/6*100);
-    var setAHTML=p.setA.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
-    var setBHTML=p.setB.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
-    return '<div class="lb-row'+(p.won?' lb-win':'')+'"><div class="lb-rank" style="color:'+rankClr+';">'+(p.won?'🏆':i+1)+'</div><div class="lb-av">'+avHTML+'</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:.88rem;">'+p.name+typeTag+'</div><div style="font-size:.7rem;color:var(--muted);margin-top:1px;">A: '+p.mA+'/6 · B: '+p.mB+'/6</div><div class="match-bar" style="margin-top:4px;"><div class="match-fill" style="width:'+pct+'%;"></div></div></div><span class="badge '+(p.won?'b-gold':p.best>=4?'b-red':'b-muted')+'">'+p.best+'/6</span></div>'+
-      '<div style="background:var(--card2);border-radius:10px;padding:9px 11px;margin-top:-1px;margin-bottom:7px;border:1px solid rgba(255,255,255,.03);"><div class="mini-row" style="margin-bottom:5px;"><span class="mini-lbl">Set A</span><div class="mini-nums">'+setAHTML+'</div></div><div class="mini-row"><span class="mini-lbl">Set B</span><div class="mini-nums">'+setBHTML+'</div></div></div>';
+  var cb = el('player-count-badge');
+  if (cb) cb.textContent = scored.length + ' player' + (scored.length !== 1 ? 's' : '') + ' in the Den';
+
+  lb.innerHTML = scored.map(function(p, i) {
+    var avHTML = p.isPhoto ? '<img src="' + p.avatar + '">' : p.avatar;
+    var isLeader = i === 0 && p.best > 0;
+    var typeTag = p.isMerch ? '<span style="font-size:.58rem;background:linear-gradient(135deg,#FF8C00,#FF6D00);color:#fff;padding:1px 6px;border-radius:6px;font-weight:800;margin-left:4px;">🛍️ MERCH</span>'
+                : p.isFree ? '<span style="font-size:.58rem;background:linear-gradient(135deg,var(--purple),#3D0070);color:#fff;padding:1px 6px;border-radius:6px;font-weight:800;margin-left:4px;">🆓 FREE</span>' : '';
+    var rankClr = p.won ? '#FFD700' : i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#cd7f32' : 'var(--muted)';
+    var rankIcon = p.won ? '👑' : i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    var pct = Math.round(p.best / 6 * 100);
+    var hotBadge = isLeader && !p.won ? '<span class="hot-badge">🔥 HOT</span>' : '';
+    var jackBadge = p.won ? '<span class="jackpot-badge">👑 JACKPOT</span>' : '';
+
+    function ballsHTML(set, matchedNums) {
+      return set.map(function(n) {
+        var hit = draw && draw.numbers.indexOf(n) > -1;
+        var cls = 'p-ball' + (hit ? (animate ? ' p-hit p-hit-new' : ' p-hit') : '');
+        return '<div class="' + cls + '">' + n + '</div>';
+      }).join('');
+    }
+
+    var badgeCls = p.won ? 'den-badge den-badge-gold' : p.best >= 4 ? 'den-badge den-badge-red' : 'den-badge den-badge-grey';
+    var rowCls = 'den-row' + (p.won ? ' den-winner' : isLeader ? ' den-leader' : '');
+
+    return '<div class="' + rowCls + '" id="den-row-' + p.id + '">' +
+      '<div class="den-row-top">' +
+        '<div class="den-rank" style="color:' + rankClr + ';">' + rankIcon + '</div>' +
+        '<div class="den-av">' + avHTML + '</div>' +
+        '<div class="den-info">' +
+          '<div class="den-name">' + p.name + typeTag + hotBadge + jackBadge + '</div>' +
+          '<div class="den-score">Best: ' + p.best + '/6 matched &nbsp;·&nbsp; A: ' + p.mA + '/6 &nbsp;·&nbsp; B: ' + p.mB + '/6</div>' +
+          '<div class="den-prog-wrap"><div class="den-prog-fill" style="width:' + pct + '%;"></div></div>' +
+        '</div>' +
+        '<div class="' + badgeCls + '">' + p.best + '/6</div>' +
+      '</div>' +
+      '<div style="border-top:1px solid rgba(255,255,255,.04);padding-top:8px;">' +
+        '<div class="den-set-label">SET A</div>' +
+        '<div class="den-balls">' + ballsHTML(p.setA, draw ? draw.numbers : []) + '</div>' +
+        '<div class="den-set-label" style="margin-top:6px;">SET B</div>' +
+        '<div class="den-balls">' + ballsHTML(p.setB, draw ? draw.numbers : []) + '</div>' +
+      '</div>' +
+    '</div>';
   }).join('');
 }
+
+
+function renderHallOfFame() {
+  var hof = el('hall-of-fame'); if (!hof) return;
+  var past = S.pastWinners || [];
+  if (!past.length) {
+    hof.innerHTML = '<div style="font-size:.8rem;color:rgba(255,255,255,.35);padding:10px 0 4px;">No past winners yet — be the first! 🦁</div>';
+    return;
+  }
+  hof.innerHTML = past.map(function(w, i) {
+    return '<div style="background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(139,0,0,.04));border:1px solid rgba(255,215,0,.18);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px;">' +
+      '<div style="font-size:1.5rem;">🏆</div>' +
+      '<div style="flex:1;">' +
+        '<div style="font-weight:900;font-size:.9rem;color:var(--gold);">' + w.name + '</div>' +
+        '<div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-top:2px;">' + (w.date || '') + (w.prize ? ' · ' + w.prize : '') + '</div>' +
+      '</div>' +
+      '<div style="font-family:Bebas Neue,cursive;font-size:.9rem;color:var(--gold);letter-spacing:1px;">' + (w.numbers ? w.numbers.join(', ') : '') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderResults() {
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  var lbl = el('results-draw-label'), bls = el('results-draw-balls'), lr = el('last-refresh');
+  if (lbl) lbl.textContent = draw ? ('Draw: ' + (draw.date || 'No date set')) : 'No active draw yet';
+  if (bls) bls.innerHTML = draw ? draw.numbers.map(function(n) {
+    return '<div class="d-ball">' + n + '</div>';
+  }).join('') : '';
+  if (lr) lr.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+  var scored = S.players.filter(function(p) { return p.confirmed || p.paid; }).map(function(p) {
+    var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
+    var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
+    return { id: p.id, name: p.name, avatar: p.avatar, isPhoto: p.isPhoto, isFree: p.isFree, isMerch: p.isMerch, setA: p.setA, setB: p.setB, mA: mA, mB: mB, best: Math.max(mA, mB), won: mA === 6 || mB === 6 };
+  }).sort(function(a, b) { return b.best - a.best || a.name.localeCompare(b.name); });
+
+  var winners = scored.filter(function(p) { return p.won; });
+  var wb = el('winner-banner-results');
+  if (wb) {
+    if (winners.length) {
+      wb.innerHTML = '<div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(139,0,0,.06));border:2px solid var(--gold);border-radius:13px;padding:16px;text-align:center;margin-bottom:14px;"><div style="font-size:2.2rem;">🏆</div><div class="bebas" style="font-size:1.3rem;color:var(--gold);">WINNER' + (winners.length > 1 ? 'S' : '') + '!</div>' +
+        winners.map(function(w) {
+          return '<div style="margin-top:9px;background:rgba(255,215,0,.07);border-radius:9px;padding:9px;"><div style="font-family:Dancing Script,cursive;font-size:1.3rem;color:var(--gold);">' + w.name + '</div></div>';
+        }).join('') +
+        '<button onclick="showLatestWinner()" style="display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:11px;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--red),#8B0000);color:#fff;font-weight:900;font-size:.88rem;cursor:pointer;">🎉 Show Winner Screen!</button></div>';
+    } else wb.innerHTML = '';
+  }
+  renderHallOfFame();
+  buildDenBoard(scored, draw, false);
+}
+
+function lookupPlayer() {
+  var inp = el('player-lookup-input');
+  var res = el('player-lookup-result');
+  if (!inp || !res) return;
+  var query = inp.value.trim().toLowerCase();
+  if (!query) { res.innerHTML = ''; return; }
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  var players = S.players.filter(function(p) { return (p.confirmed || p.paid) && p.name.toLowerCase().indexOf(query) > -1; });
+  if (!players.length) { res.innerHTML = '<div style="font-size:.78rem;color:rgba(255,255,255,.4);padding:8px 0;">No player found with that name.</div>'; return; }
+  var p = players[0];
+  var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
+  var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
+  var best = Math.max(mA, mB);
+  function cardBalls(set) {
+    return set.map(function(n) {
+      var hit = draw && draw.numbers.indexOf(n) > -1;
+      return '<div class="p-ball' + (hit ? ' p-hit' : '') + '" style="width:34px;height:34px;font-size:.82rem;">' + n + '</div>';
+    }).join('');
+  }
+  res.innerHTML = '<div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(139,0,0,.04));border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:13px;">' +
+    '<div style="font-family:Bebas Neue,cursive;font-size:1.1rem;color:var(--gold);margin-bottom:2px;">🦁 ' + p.name + '</div>' +
+    '<div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:10px;">Best: ' + best + ' of 6 matched</div>' +
+    '<div class="den-set-label">SET A</div>' +
+    '<div class="den-balls" style="margin-bottom:8px;">' + cardBalls(p.setA) + '</div>' +
+    '<div class="den-set-label">SET B</div>' +
+    '<div class="den-balls">' + cardBalls(p.setB) + '</div>' +
+    (best === 6 ? '<div style="margin-top:10px;text-align:center;font-family:Bebas Neue,cursive;font-size:1.2rem;color:var(--gold);">👑 JACKPOT WINNER!</div>' : '') +
+  '</div>';
+}
+
+function triggerReveal() {
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  if (!draw || !draw.numbers || !draw.numbers.length) { showToast('No draw results to reveal yet!'); return; }
+  var ov = el('reveal-overlay');
+  var row = el('reveal-balls-row');
+  var status = el('reveal-status');
+  var closeBtn = el('reveal-close-btn');
+  if (!ov || !row) return;
+  row.innerHTML = '';
+  if (status) status.textContent = '';
+  if (closeBtn) closeBtn.style.display = 'none';
+  ov.style.display = 'flex';
+  var nums = draw.numbers.slice();
+  var i = 0;
+  function dropNext() {
+    if (i >= nums.length) {
+      if (status) status.textContent = '🦁 Numbers are in — check the Den Board!';
+      if (closeBtn) closeBtn.style.display = 'inline-block';
+      return;
+    }
+    if (status) status.textContent = 'Number ' + (i + 1) + ' of ' + nums.length + '...';
+    var wrap = document.createElement('div');
+    wrap.style.position = 'relative';
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'center';
+    var ripple = document.createElement('div');
+    ripple.className = 'reveal-ripple';
+    var ball = document.createElement('div');
+    ball.className = 'reveal-ball';
+    ball.textContent = nums[i];
+    wrap.appendChild(ripple);
+    wrap.appendChild(ball);
+    row.appendChild(wrap);
+    i++;
+    setTimeout(dropNext, 1100);
+  }
+  setTimeout(dropNext, 400);
+}
+
+function closeReveal() {
+  var ov = el('reveal-overlay');
+  if (ov) ov.style.display = 'none';
+  showPage('results');
+  renderResults();
+  // Animate hits on the board
+  setTimeout(function() {
+    var balls = document.querySelectorAll('.p-ball.p-hit');
+    balls.forEach(function(b, idx) {
+      setTimeout(function() { b.classList.add('p-hit-new'); }, idx * 80);
+    });
+  }, 300);
+}
+
 
 // Winner screen
 function showLatestWinner(){
@@ -1589,9 +1859,48 @@ function fireConfetti(){
 }
 
 // Init
+
+// ── Add to Home Screen ──
+function initA2HS() {
+  try {
+    if (localStorage.getItem('a2hs_dismissed')) return;
+  } catch(e) { return; }
+  var banner = el('a2hs-banner');
+  if (!banner) return;
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  var isAndroid = /Android/.test(ua);
+  // Don't show if already installed as PWA
+  if (window.navigator.standalone) return;
+  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+  if (isIOS) {
+    var d = el('a2hs-iphone'); if (d) d.style.display = 'block';
+  } else if (isAndroid) {
+    var d = el('a2hs-android'); if (d) d.style.display = 'block';
+  } else {
+    var d = el('a2hs-other'); if (d) d.style.display = 'block';
+  }
+  banner.style.display = 'block';
+}
+
+function dismissA2HS() {
+  var banner = el('a2hs-banner');
+  if (banner) {
+    banner.style.transition = 'opacity .3s ease, max-height .4s ease';
+    banner.style.opacity = '0';
+    banner.style.maxHeight = '0';
+    banner.style.overflow = 'hidden';
+    banner.style.margin = '0';
+    banner.style.padding = '0';
+    setTimeout(function() { banner.style.display = 'none'; }, 400);
+  }
+  try { localStorage.setItem('a2hs_dismissed', '1'); } catch(e) {}
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var hdDate=el('host-draw-date'); if(hdDate) hdDate.value=new Date().toISOString().split('T')[0];
   renderGameBanner();
+  setTimeout(initA2HS, 1200);
 });
 </script>
 </body>
