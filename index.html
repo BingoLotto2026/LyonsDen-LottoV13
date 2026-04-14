@@ -755,6 +755,28 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <div style="text-align:center;margin-top:8px;">
       <button onclick="renderResults()" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1px solid rgba(0,230,118,.3);background:rgba(0,230,118,.07);color:var(--green);font-family:Montserrat,sans-serif;font-weight:700;font-size:.65rem;cursor:pointer;">🔄 Refresh Board</button>
     </div>
+
+    <!-- Draw Proof Panel -->
+    <div id="results-proof-panel" style="display:none;margin:10px 0 0;background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.18);border-radius:12px;padding:12px 14px;">
+      <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">📋 Draw Proof</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:10px;">Verify these are the official NY Lotto numbers:</div>
+      <a id="results-proof-link" href="https://nylottery.ny.gov/draw-game?game=lotto" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 12px;text-decoration:none;margin-bottom:8px;">
+        <span style="font-size:1.1rem;">🔗</span>
+        <div>
+          <div style="font-size:.76rem;font-weight:800;color:#fff;">Official NY Lottery Results</div>
+          <div id="results-proof-date" style="font-size:.65rem;color:rgba(255,255,255,.4);margin-top:1px;">nylottery.ny.gov</div>
+        </div>
+        <span style="margin-left:auto;font-size:.7rem;color:var(--gold);">Tap to verify ↗</span>
+      </a>
+      <div id="results-proof-screenshot" style="display:none;">
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:5px;">Host screenshot:</div>
+        <a id="results-proof-img-link" href="#" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 12px;text-decoration:none;">
+          <span style="font-size:1.1rem;">📸</span>
+          <div style="font-size:.76rem;font-weight:800;color:#fff;">View Screenshot Proof</div>
+          <span style="margin-left:auto;font-size:.7rem;color:var(--gold);">Open ↗</span>
+        </a>
+      </div>
+    </div>
   </div>
 
   <!-- Player Lookup -->
@@ -883,6 +905,14 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
       <div class="num-grid" id="host-draw-grid"></div>
       <button class="btn btn-gold" id="host-run-draw" onclick="runDraw()" style="width:100%;" disabled>🎱 Run This Draw!</button>
       <button class="btn" onclick="triggerReveal()" style="background:linear-gradient(135deg,#6A0DAD,#3D0070);color:#fff;font-weight:900;margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">🎰 Drop the Numbers — Trigger Reveal</button>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);">
+        <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:8px;">📋 Post Draw Proof</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;">Help players verify these are the real NY Lotto numbers.</div>
+        <label style="font-size:.72rem;color:rgba(255,255,255,.6);display:block;margin-bottom:4px;">Screenshot URL <span style="color:rgba(255,255,255,.35);">(paste link to your screenshot)</span></label>
+        <input id="host-proof-img" type="url" placeholder="https://..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 10px;color:#fff;font-family:Montserrat,sans-serif;font-size:.76rem;outline:none;box-sizing:border-box;margin-bottom:8px;">
+        <button onclick="saveProof()" style="width:100%;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(200,16,46,.1));color:var(--gold);font-weight:900;font-size:.78rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(255,215,0,.25);">💾 Save Proof</button>
+        <div id="host-proof-saved" style="display:none;font-size:.7rem;color:var(--green);text-align:center;margin-top:6px;">✅ Proof saved — visible to players on Results page</div>
+      </div>
     </div>
     <div id="host-player-list"></div>
   </div>
@@ -1164,7 +1194,7 @@ function showPage(name) {
   if (name === 'home')     renderGameBanner();
   if (name === 'register') initRegister();
   if (name === 'results')  { renderResults(); startResultsTimer(); }
-  if (name === 'host')     renderHost();
+  if (name === 'host')     { renderHost(); populateProofFields(); }
 }
 
 // Game Banner
@@ -1743,6 +1773,7 @@ function renderResults() {
     } else wb.innerHTML = '';
   }
   renderHallOfFame();
+  renderProof();
   buildDenBoard(scored, draw, false);
 }
 
@@ -1895,6 +1926,49 @@ function dismissA2HS() {
     setTimeout(function() { banner.style.display = 'none'; }, 400);
   }
   try { localStorage.setItem('a2hs_dismissed', '1'); } catch(e) {}
+}
+
+
+// ── Draw Proof ──
+function saveProof() {
+  var imgInput = el('host-proof-img');
+  var imgUrl = imgInput ? imgInput.value.trim() : '';
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  if (!draw) { showToast('No active draw to attach proof to.'); return; }
+  draw.proofImg = imgUrl;
+  save();
+  var saved = el('host-proof-saved');
+  if (saved) saved.style.display = 'block';
+  setTimeout(function() { if (saved) saved.style.display = 'none'; }, 3000);
+  showToast('Proof saved!');
+}
+
+function renderProof() {
+  var panel = el('results-proof-panel');
+  if (!panel) return;
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  if (!draw) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  var dateEl = el('results-proof-date');
+  var nyUrl = 'https://nylottery.ny.gov/draw-game?game=lotto';
+  if (dateEl) dateEl.textContent = draw.date ? ('Draw date: ' + draw.date + ' — nylottery.ny.gov') : 'nylottery.ny.gov';
+  var linkEl = el('results-proof-link');
+  if (linkEl) linkEl.href = nyUrl;
+  var ssWrap = el('results-proof-screenshot');
+  var ssLink = el('results-proof-img-link');
+  if (draw.proofImg && draw.proofImg.length > 5) {
+    if (ssWrap) ssWrap.style.display = 'block';
+    if (ssLink) ssLink.href = draw.proofImg;
+  } else {
+    if (ssWrap) ssWrap.style.display = 'none';
+  }
+}
+
+
+function populateProofFields() {
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  var imgInput = el('host-proof-img');
+  if (imgInput) imgInput.value = (draw && draw.proofImg) ? draw.proofImg : '';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
