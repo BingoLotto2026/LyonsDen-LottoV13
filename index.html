@@ -608,6 +608,40 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <div class="page-title">📖 How to Play</div>
   </div>
   <div class="section-pad">
+    <!-- Quick Rules Cheat Sheet -->
+    <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(139,0,0,.05));border:2px solid rgba(255,215,0,.3);border-radius:16px;padding:16px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:Bebas Neue,cursive;font-size:1.1rem;letter-spacing:2px;color:var(--gold);">📸 Quick Rules — Save This!</div>
+        <button onclick="copyText('lyonsdenbingolotto.netlify.app','Game link copied!')" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);border-radius:8px;padding:4px 10px;color:var(--gold);font-size:.65rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy Link</button>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0;">🎟️</span>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Entry Fee</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">$20 per entry · Paid players eligible for cash jackpot · Free entry available (non-cash prizes only)</div></div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0;">🔢</span>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Your Numbers</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">Pick 2 sets of 6 numbers (1–59) · Both sets play every draw · Best set counts for your score</div></div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0;">📅</span>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">The Draws</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">Official NY Lotto draws every Wednesday &amp; Saturday · Game runs monthly · Match all 6 to win the jackpot</div></div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0;">💰</span>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Prize Pool</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">90% of all paid entries · 10% admin fee · Announced to all players before first draw</div></div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0;">🏆</span>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Winning</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">Match all 6 numbers in one set · Winners notified within 24hrs · Must claim within 72hrs</div></div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0;">📲</span>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Follow the Action</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">Check the Den Board live at lyonsdenbingolotto.netlify.app · Follow @iamprettylyon for updates</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="card"><div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">🎯 Overview</div><p style="font-size:.84rem;color:rgba(255,255,255,.82);line-height:1.7;">Pretty Lyon's Bingo Lotto in the Lyon's Den uses official <strong style="color:var(--gold);">NY Lotto</strong> draw numbers every Wednesday and Saturday. Pick 2 sets of 6 numbers (1–59). Match all 6 to WIN!</p></div>
     <div class="card" style="background:rgba(200,16,46,.07);border-color:rgba(200,16,46,.25);">
       <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--red);margin-bottom:10px;">About the NY Lotto Bonus Ball</div>
@@ -754,6 +788,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <!-- Refresh -->
     <div style="text-align:center;margin-top:8px;">
       <button onclick="renderResults()" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1px solid rgba(0,230,118,.3);background:rgba(0,230,118,.07);color:var(--green);font-family:Montserrat,sans-serif;font-weight:700;font-size:.65rem;cursor:pointer;">🔄 Refresh Board</button>
+      <button onclick="shareDenBoard()" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.07);color:var(--gold);font-family:Montserrat,sans-serif;font-weight:700;font-size:.65rem;cursor:pointer;margin-left:8px;">📲 Share</button>
     </div>
 
     <!-- Draw Proof Panel -->
@@ -891,6 +926,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:9px;">👥 Players (<span id="host-player-count">0</span>)</div>
     <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:11px;">
       <button class="btn btn-red btn-sm" onclick="exportPlayers()">📤 Export Player List (CSV)</button>
+      <button class="btn btn-sm" onclick="copyWelcomeMsg()" style="background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(200,16,46,.1));color:var(--gold);border:1px solid rgba(255,215,0,.25);font-family:Montserrat,sans-serif;">📋 Copy Player Welcome Message</button>
       <button class="btn btn-sm" onclick="startNewGame()" style="background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;font-family:Montserrat,sans-serif;font-weight:800;font-size:.78rem;padding:8px 14px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">🆕 Start New Month's Game</button>
       <button class="btn btn-dark btn-sm" onclick="resetAll()">🗑️ Reset All Data</button>
     </div>
@@ -942,7 +978,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
   </div>
   <div class="section-pad">
     <div class="card">
-      <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">Last Updated: 2025</div>
+      <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">Last Updated: January 2026</div>
       <p style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.8;margin-bottom:10px;">By participating in Bingo Lotto in the Lyon's Den ("the Game"), you agree to the following terms. Please read carefully before registering.</p>
     </div>
     <div class="card">
@@ -1969,6 +2005,42 @@ function populateProofFields() {
   var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
   var imgInput = el('host-proof-img');
   if (imgInput) imgInput.value = (draw && draw.proofImg) ? draw.proofImg : '';
+}
+
+
+// ── Social Share ──
+function shareDenBoard() {
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  var playerCount = S.players.filter(function(p) { return p.confirmed || p.paid; }).length;
+  var drawInfo = draw ? ("Draw: " + (draw.date || "latest") + " | Numbers: " + draw.numbers.join(", ")) : "Game in progress";
+  var lines = [
+    "\uD83E\uDD81 Bingo Lotto in the Lyon\u2019s Den",
+    drawInfo,
+    playerCount + " players in the Den!",
+    "Check the live leaderboard & play next month:",
+    "lyonsdenbingolotto.netlify.app",
+    "#LyonsDen #PrettyLyon #BingoLotto"
+  ];
+  var text = lines.join("\n");
+  if (navigator.share) {
+    navigator.share({ title: "Bingo Lotto in the Lyon\u2019s Den", text: text, url: "https://lyonsdenbingolotto.netlify.app" })
+      .catch(function() { copyText(text, "Share text copied - paste to your story!"); });
+  } else {
+    copyText(text, "Share text copied - paste to your story! \uD83D\uDCF2");
+  }
+}
+
+// ── Welcome Message ──
+function copyWelcomeMsg() {
+  var confirmed = S.players.filter(function(p) { return p.confirmed || p.paid; });
+  if (!confirmed.length) { showToast('No confirmed players yet.'); return; }
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  var lines = confirmed.map(function(p) {
+    var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
+    var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
+    return "Hi " + p.name + "! Welcome to the Lyon\u2019s Den \uD83E\uDD81 Your sets are locked in: Set A [" + p.setA.join(", ") + "] Set B [" + p.setB.join(", ") + "]. Check the live board at lyonsdenbingolotto.netlify.app. Good luck! \uD83D\uDC51";
+  });
+  copyText(lines.join("\n---\n"), confirmed.length + " welcome messages copied!");
 }
 
 document.addEventListener('DOMContentLoaded', function() {
