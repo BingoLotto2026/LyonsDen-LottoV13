@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn-cgi.cloudflare.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firestore.googleapis.com wss://*.firebaseio.com;">
 <meta name="robots" content="noindex">
 <title>Bingo Lotto in the Lyon's Den</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -1113,30 +1115,14 @@ var AVATARS   = ['🦁','🎤','💅','👑','🔥','💎','🎵','🎱','🌟',
 
 var S = loadState();
 
-function loadState() {
-  try {
-    var raw = localStorage.getItem('lyonsden_v2');
-    if (raw) {
-      var parsed = JSON.parse(raw);
-      if (!parsed.game)              parsed.game = defaultGame();
-      if (!parsed.game.notifyEmails) parsed.game.notifyEmails = [];
-      if (!parsed.game.merchCodes)   parsed.game.merchCodes = [];
-      if (!parsed.game.freeCode)     parsed.game.freeCode = 'DENPASS';
-      if (!parsed.game.freeLimit)    parsed.game.freeLimit = 10;
-      return parsed;
-    }
-  } catch(e) {}
-  return { players: [], draws: [], currentDraw: null, game: defaultGame() };
-}
+// loadState and save handled by Firebase below
 
 function defaultGame() {
   return { month:'', registrationOpen:false, registrationDeadline:'', firstDrawDate:'',
            announcementBanner:'', notifyEmails:[], merchCodes:[], freeCode:'DENPASS', freeLimit:10, manualOverride:false, maxPlayers:50 };
 }
 
-function save() {
-  try { localStorage.setItem('lyonsden_v2', JSON.stringify(S)); } catch(e) {}
-}
+// save() handled by Firebase below
 
 var selAvatar = '🦁';
 var photoData = null;
@@ -1216,6 +1202,7 @@ var PAGE_IDS = ['home','register','howto','payment','results','host-login','host
 var NAV_IDS  = { home:'bn-home', register:'bn-register', results:'bn-results', payment:'bn-payment', 'host-login':'bn-host-login', host:'bn-host-login', howto:'bn-home', winner:'bn-results', terms:'bn-home', privacy:'bn-home' };
 
 function showPage(name) {
+  if (!hostLoggedIn) { try { hostLoggedIn = sessionStorage.getItem('hostLoggedIn') === '1'; } catch(e) {} }
   if (name === 'host' && !hostLoggedIn) { showPage('host-login'); return; }
   PAGE_IDS.forEach(function(p) {
     var e = el('page-' + p);
@@ -1338,11 +1325,15 @@ function handleJoinClick() {
 
 function submitNotifyEmail() {
   var inp = el('notify-email-input'); if (!inp) return;
-  var email = inp.value.trim();
-  if (!email || email.indexOf('@') < 0) { showToast('Enter a valid email!', true); return; }
-  if (S.game.notifyEmails.indexOf(email) > -1) { showToast('You are already on the list!'); return; }
-  S.game.notifyEmails.push(email); save(); inp.value = '';
-  showToast('You are on the list! We will notify you.');
+  var email = (inp.value || '').trim().toLowerCase();
+  if (!email || email.indexOf('@') < 0 || email.indexOf('.') < 0) { showToast('Please enter a valid email address!', true); return; }
+  if (!S.game.notifyEmails) S.game.notifyEmails = [];
+  if (S.game.notifyEmails.indexOf(email) > -1) { showToast('You are already on the notify list!'); return; }
+  S.game.notifyEmails.push(email);
+  save();
+  inp.value = '';
+  inp.blur();
+  showToast('Done! We will notify you when the game opens.');
 }
 
 // Register
@@ -1363,11 +1354,12 @@ function showClosedScreen() {
 
 function submitRegNotify() {
   var inp = el('reg-notify-email'); if (!inp) return;
-  var email = inp.value.trim();
-  if (!email || email.indexOf('@') < 0) { showToast('Enter a valid email!', true); return; }
+  var email = (inp.value || '').trim().toLowerCase();
+  if (!email || email.indexOf('@') < 0 || email.indexOf('.') < 0) { showToast('Please enter a valid email address!', true); return; }
+  if (!S.game.notifyEmails) S.game.notifyEmails = [];
   if (S.game.notifyEmails.indexOf(email) > -1) { showToast('You are already on the list!'); return; }
-  S.game.notifyEmails.push(email); save(); inp.value = '';
-  showToast('We will notify you when registration opens!');
+  S.game.notifyEmails.push(email); save(); inp.value = ''; inp.blur();
+  showToast('Done! We will notify you when registration opens.');
 }
 
 function showOpenReg() {
@@ -1533,6 +1525,11 @@ function confirmEntry() {
   var player={id:Date.now(),name:name,email:email,avatar:photoData||selAvatar,isPhoto:!!photoData,isFree:regIsFree&&!regIsMerch,isMerch:regIsMerch,setA:regPickedA.slice(),setB:regPickedB.slice(),confirmed:false,paid:!regIsFree||regIsMerch,date:new Date().toLocaleDateString()};
   S.players.push(player);
   if(regIsMerch&&pendingMerchIdx>=0&&S.game.merchCodes[pendingMerchIdx]){S.game.merchCodes[pendingMerchIdx].used=true;S.game.merchCodes[pendingMerchIdx].usedBy=name||email;pendingMerchIdx=-1;}
+  // Auto-add email to notify list
+  if (email && email.indexOf('@') > -1) {
+    if (!S.game.notifyEmails) S.game.notifyEmails = [];
+    if (S.game.notifyEmails.indexOf(email) < 0) S.game.notifyEmails.push(email);
+  }
   save();
   var det=el('confirm-details');
   if(det){
@@ -1549,11 +1546,16 @@ function confirmEntry() {
 // Host
 function doLogin() {
   var pw=(el('host-pw')||{value:''}).value;
-  if(pw===HOST_PW){hostLoggedIn=true;el('host-pw').value='';showPage('host');showToast('Welcome to the Control Room!');}
-  else showToast('Wrong password!',true);
+  if(pw===HOST_PW){
+    hostLoggedIn=true;
+    try { sessionStorage.setItem('hostLoggedIn','1'); } catch(e) {}
+    el('host-pw').value='';
+    showPage('host');
+    showToast('Welcome to the Control Room!');
+  } else showToast('Wrong password!',true);
 }
 
-function hostLogout(){hostLoggedIn=false;showPage('home');}
+function hostLogout(){hostLoggedIn=false;try{sessionStorage.removeItem('hostLoggedIn');}catch(e){}showPage('home');}
 
 function renderHost() {
   var paid=S.players.filter(function(p){return p.paid;}).length;
@@ -2043,10 +2045,112 @@ function copyWelcomeMsg() {
   copyText(lines.join("\n---\n"), confirmed.length + " welcome messages copied!");
 }
 
+// ── Firebase Config ──
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBPo7s9VMXLcihSb2eQcXH16K-PgkfBEvQ",
+  authDomain: "lyons-den-lotto.firebaseapp.com",
+  projectId: "lyons-den-lotto",
+  storageBucket: "lyons-den-lotto.firebasestorage.app",
+  messagingSenderId: "198397963971",
+  appId: "1:198397963971:web:6960066f662627d19afc76"
+};
+
+// ── Firebase state ──
+var db = null;
+var fbUnsubscribe = null;
+
+// ── Initialize Firebase ──
+function initFirebase() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    console.log("Firebase connected");
+    listenToGameState();
+  } catch(e) {
+    console.error("Firebase init failed:", e);
+    showToast("Connection error - using local mode", true);
+  }
+}
+
+// ── Real-time listener - syncs ALL devices instantly ──
+function listenToGameState() {
+  if (!db) return;
+  if (fbUnsubscribe) fbUnsubscribe();
+  fbUnsubscribe = db.collection("gamestate").doc("main").onSnapshot(function(doc) {
+    if (doc.exists) {
+      var data = doc.data();
+      // Merge remote state into S carefully
+      if (data.game)        S.game = data.game;
+      if (data.players)     S.players = data.players;
+      if (data.draws)       S.draws = data.draws;
+      if (data.currentDraw !== undefined) S.currentDraw = data.currentDraw;
+      if (data.pastWinners) S.pastWinners = data.pastWinners;
+      // Re-render active page
+      var activePage = document.querySelector(".page.active");
+      if (activePage) {
+        var pageId = activePage.id.replace("page-", "");
+        if (pageId === "home")    renderGameBanner();
+        if (pageId === "results") { renderResults(); }
+        if (pageId === "host")    renderHost();
+      }
+    } else {
+      // No doc yet - push defaults
+      fbSave();
+    }
+  }, function(err) {
+    console.error("Snapshot error:", err);
+  });
+}
+
+// ── Save to Firebase (replaces localStorage save) ──
+function fbSave() {
+  if (!db) { localSave(); return; }
+  db.collection("gamestate").doc("main").set({
+    game:        S.game,
+    players:     S.players,
+    draws:       S.draws,
+    currentDraw: S.currentDraw,
+    pastWinners: S.pastWinners || [],
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(e) {
+    console.error("Save failed:", e);
+    localSave();
+  });
+}
+
+// ── Fallback local save ──
+function localSave() {
+  try { localStorage.setItem("lyonsden_v2", JSON.stringify(S)); } catch(e) {}
+}
+
+// ── Load initial state ──
+function loadState() {
+  // Start with defaults - Firebase listener will populate real data
+  try {
+    var raw = localStorage.getItem("lyonsden_v2");
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (!parsed.game)              parsed.game = defaultGame();
+      if (!parsed.game.notifyEmails) parsed.game.notifyEmails = [];
+      if (!parsed.game.merchCodes)   parsed.game.merchCodes = [];
+      if (!parsed.game.freeCode)     parsed.game.freeCode = "DENPASS";
+      if (!parsed.game.freeLimit)    parsed.game.freeLimit = 10;
+      if (!parsed.pastWinners)       parsed.pastWinners = [];
+      return parsed;
+    }
+  } catch(e) {}
+  return { players: [], draws: [], currentDraw: null, pastWinners: [], game: defaultGame() };
+}
+
+// ── save() now writes to Firebase ──
+function save() { fbSave(); }
+
+
 document.addEventListener('DOMContentLoaded', function() {
   var hdDate=el('host-draw-date'); if(hdDate) hdDate.value=new Date().toISOString().split('T')[0];
   renderGameBanner();
   setTimeout(initA2HS, 1200);
+  initFirebase();
 });
 </script>
 </body>
