@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn-cgi.cloudflare.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firestore.googleapis.com wss://*.firebaseio.com;">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <meta name="robots" content="noindex">
 <title>Bingo Lotto in the Lyon's Den</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -2061,15 +2061,30 @@ var fbUnsubscribe = null;
 
 // ── Initialize Firebase ──
 function initFirebase() {
-  try {
-    firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.firestore();
-    console.log("Firebase connected");
-    listenToGameState();
-  } catch(e) {
-    console.error("Firebase init failed:", e);
-    showToast("Connection error - using local mode", true);
+  var attempts = 0;
+  function tryInit() {
+    attempts++;
+    if (typeof firebase === 'undefined') {
+      if (attempts < 20) {
+        setTimeout(tryInit, 300);
+      } else {
+        console.warn("Firebase not available after retries - running in local mode");
+      }
+      return;
+    }
+    try {
+      // Only initialize if not already initialized
+      if (!firebase.apps || firebase.apps.length === 0) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      db = firebase.firestore();
+      console.log("Firebase connected!");
+      listenToGameState();
+    } catch(e) {
+      console.error("Firebase init failed:", e);
+    }
   }
+  tryInit();
 }
 
 // ── Real-time listener - syncs ALL devices instantly ──
