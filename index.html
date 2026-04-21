@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 
 <meta name="robots" content="noindex">
 <title>Bingo Lotto in the Lyon's Den</title>
@@ -280,6 +279,13 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
 
 
   @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+
+  @keyframes joinPulse {
+    0%,100% { box-shadow:0 0 14px rgba(255,215,0,.35); transform:scale(1); }
+    50%      { box-shadow:0 0 28px rgba(255,215,0,.7);  transform:scale(1.02); }
+  }
+
+  .p-pending { border-left: 3px solid #FF8C00 !important; }
 </style>
 </head>
 <body>
@@ -596,8 +602,18 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
         <div class="bebas" style="font-size:1.7rem;color:var(--green);letter-spacing:2px;margin-bottom:6px;">You're In the Den!</div>
         <p style="color:rgba(255,255,255,.7);font-size:.84rem;margin-bottom:14px;">Your entry has been submitted. The host will verify your payment and confirm your spot within 24 hours.</p>
         <div id="confirm-details" style="background:var(--card);border-radius:13px;padding:15px;margin-bottom:14px;text-align:left;"></div>
+        <!-- Thank You + Share Card -->
+        <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(139,0,0,.05));border:1px solid rgba(255,215,0,.25);border-radius:14px;padding:14px;margin-bottom:14px;text-align:left;">
+          <div style="font-family:Bebas Neue,cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">🦁 Thank You for Joining the Den!</div>
+          <p style="font-size:.76rem;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:10px;">Your numbers are locked in! Keep an eye out for results every Wednesday and Saturday. Check the Den Board anytime to see how you're doing!</p>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:7px;font-weight:800;">📲 Know someone who wants in? Share the game!</div>
+          <div style="display:flex;gap:7px;">
+            <button onclick="shareAfterReg()" style="flex:1;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;">📤 Share the Game</button>
+            <button onclick="copyText('lyonsdenbingolotto.netlify.app','Link copied!')" style="flex:1;padding:9px;border-radius:9px;border:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:800;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy Link</button>
+          </div>
+        </div>
         <button class="btn btn-gold" onclick="showPage('home')" style="width:100%;">🏠 Back to Home</button>
-        <button class="btn btn-outline" onclick="showPage('results')" style="width:100%;margin-top:8px;padding:11px;font-size:.83rem;">🏆 View Leaderboard</button>
+        <button class="btn btn-outline" onclick="showPage('results')" style="width:100%;margin-top:8px;padding:11px;font-size:.83rem;">🏆 View Den Board</button>
       </div>
     </div>
   </div>
@@ -1164,6 +1180,13 @@ function copyText(text, msg) {
 
 function fmtDate(iso, withTime) {
   if (!iso) return '';
+  // Handle date-only strings (YYYY-MM-DD) without timezone shift
+  if (iso.length === 10) {
+    var parts = iso.split('-');
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    var opts = { weekday:'short', month:'long', day:'numeric', year:'numeric' };
+    return d.toLocaleDateString('en-US', opts);
+  }
   var d = new Date(iso);
   var opts = { weekday:'short', month:'long', day:'numeric', year:'numeric' };
   if (withTime) return d.toLocaleDateString('en-US', opts) + ' at ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
@@ -1184,17 +1207,19 @@ function getWinners(draw) {
   });
 }
 
-// Music bar
-var musicToggleBtn = el('music-toggle');
-if (musicToggleBtn) {
-  musicToggleBtn.onclick = function() {
-    musicVisible = !musicVisible;
-    var bar = el('music-bar');
-    if (bar) bar.className = musicVisible ? 'show' : '';
-    musicToggleBtn.textContent = musicVisible ? '✕' : '🎵';
-    var app = el('app');
-    if (app) app.style.paddingTop = musicVisible ? '44px' : '0';
-  };
+// Music bar - wired up in DOMContentLoaded below
+function initMusicBar() {
+  var musicToggleBtn = el('music-toggle');
+  if (musicToggleBtn) {
+    musicToggleBtn.onclick = function() {
+      musicVisible = !musicVisible;
+      var bar = el('music-bar');
+      if (bar) bar.className = musicVisible ? 'show' : '';
+      musicToggleBtn.textContent = musicVisible ? '✕' : '🎵';
+      var app = el('app');
+      if (app) app.style.paddingTop = musicVisible ? '44px' : '0';
+    };
+  }
 }
 
 // Nav
@@ -1260,8 +1285,8 @@ function renderGameBanner() {
       joinBtn.style.cssText = 'width:100%;padding:14px;border-radius:11px;border:none;font-family:Montserrat,sans-serif;font-weight:900;font-size:.95rem;cursor:not-allowed;background:linear-gradient(135deg,#8B0000,#500000);color:rgba(255,255,255,0.5);';
       joinBtn.textContent = 'SOLD OUT - All Spots Filled!';
     } else if (open) {
-      joinBtn.style.cssText = 'width:100%;padding:14px;border-radius:11px;border:none;font-family:Montserrat,sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1A0500;';
-      joinBtn.textContent = g.month ? ('Join ' + g.month + ' Game') : "Join This Month's Game";
+      joinBtn.style.cssText = 'width:100%;padding:14px;border-radius:11px;border:none;font-family:Montserrat,sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1A0500;animation:joinPulse 1.8s ease-in-out infinite;box-shadow:0 0 18px rgba(255,215,0,.4);';
+      joinBtn.textContent = g.month ? ('🦁 Join ' + g.month + ' Game!') : "🦁 Join This Month's Game!";
     } else if (hasGame) {
       joinBtn.style.cssText = 'width:100%;padding:14px;border-radius:11px;border:none;font-family:Montserrat,sans-serif;font-weight:900;font-size:.95rem;cursor:not-allowed;background:#333;color:rgba(255,255,255,0.35);opacity:.65;';
       joinBtn.textContent = 'Registration Closed';
@@ -1316,9 +1341,12 @@ function startCountdown(target) {
 }
 
 function handleJoinClick() {
+  // Always use latest state from Firebase before deciding
   if (isSoldOut()) { showToast('All spots are filled! Sign up to be notified about next month.', true); return; }
-  if (!isRegOpen() && (S.game.month || S.game.firstDrawDate)) {
-    showToast('Registration is closed. Sign up to be notified!', true); return;
+  if (!S.game.registrationOpen) {
+    if (S.game.month || S.game.firstDrawDate) {
+      showToast('Registration is closed. Sign up to be notified!', true); return;
+    }
   }
   showPage('register');
 }
@@ -1524,7 +1552,17 @@ function confirmEntry() {
   var name=(el('reg-name')||{value:''}).value.trim(), email=(el('reg-email')||{value:''}).value.trim();
   var player={id:Date.now(),name:name,email:email,avatar:photoData||selAvatar,isPhoto:!!photoData,isFree:regIsFree&&!regIsMerch,isMerch:regIsMerch,setA:regPickedA.slice(),setB:regPickedB.slice(),confirmed:false,paid:!regIsFree||regIsMerch,date:new Date().toLocaleDateString()};
   S.players.push(player);
-  if(regIsMerch&&pendingMerchIdx>=0&&S.game.merchCodes[pendingMerchIdx]){S.game.merchCodes[pendingMerchIdx].used=true;S.game.merchCodes[pendingMerchIdx].usedBy=name||email;pendingMerchIdx=-1;}
+  if(regIsMerch&&pendingMerchIdx>=0&&S.game.merchCodes[pendingMerchIdx]){
+    S.game.merchCodes[pendingMerchIdx].used=true;
+    S.game.merchCodes[pendingMerchIdx].usedBy=name||email;
+    // Add BONUS 2nd entry for merch players - they get 2 plays!
+    var bonusPlayer = {id:Date.now()+1,name:name+' (Bonus Entry)',email:email,
+      avatar:photoData||selAvatar,isPhoto:!!photoData,isFree:false,isMerch:true,
+      setA:regPickedB.slice(),setB:regPickedA.slice(),
+      confirmed:false,paid:true,date:new Date().toLocaleDateString(),isBonusEntry:true};
+    S.players.push(bonusPlayer);
+    pendingMerchIdx=-1;
+  }
   // Auto-add email to notify list
   if (email && email.indexOf('@') > -1) {
     if (!S.game.notifyEmails) S.game.notifyEmails = [];
@@ -1538,9 +1576,14 @@ function confirmEntry() {
     det.innerHTML='<div style="display:flex;align-items:center;gap:9px;margin-bottom:11px;"><div class="p-av">'+avHTML+'</div><div><div class="p-name">'+name+' '+typeTag+'</div><div class="p-email-lbl">'+email+'</div></div></div>'+
       '<div style="margin-bottom:7px;"><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">SET A</div><div style="display:flex;gap:4px;flex-wrap:wrap;">'+regPickedA.map(function(n){return '<div class="p-ball p-ball-a" style="width:32px;height:32px;font-size:.72rem;">'+n+'</div>';}).join('')+'</div></div>'+
       '<div><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">SET B</div><div style="display:flex;gap:4px;flex-wrap:wrap;">'+regPickedB.map(function(n){return '<div class="p-ball p-ball-b" style="width:32px;height:32px;font-size:.72rem;">'+n+'</div>';}).join('')+'</div></div>'+
-      '<div style="margin-top:11px;padding:9px;background:rgba(255,215,0,.06);border-radius:8px;font-size:.73rem;color:rgba(255,255,255,.6);">Awaiting host payment verification. You will be confirmed within 24hrs.</div>';
+      '<div style="margin-top:11px;padding:9px;background:rgba(255,215,0,.06);border-radius:8px;font-size:.73rem;color:rgba(255,255,255,.6);">'+
+        (player.isFree||player.isMerch ? '<div style="color:#00E676;font-weight:800;margin-bottom:4px;">✅ Free/Merch Entry — No payment needed!</div>' :
+        '<div style="color:var(--gold);font-weight:800;margin-bottom:6px;">📧 Save this as your receipt!</div><div style="margin-bottom:4px;">Entry ID: <strong style="color:#fff;font-family:monospace;">#'+player.id+'</strong></div><div style="margin-bottom:4px;">Send payment to: <strong style="color:#fff;">Square, PayPal, Venmo or Cash App</strong></div><div>Screenshot this page as your payment record. Host will confirm within 24hrs.</div>')+
+        '</div>';
   }
   showRegStep(4); showToast('You are in the Den!');
+  // Immediately re-render results so leaderboard updates now
+  renderResults();
 }
 
 // Host
@@ -1565,7 +1608,7 @@ function renderHost() {
   sv('stat-players',maxP>0?(S.players.length+'/'+maxP):S.players.length);sv('stat-revenue','$'+col);sv('stat-draws',S.draws.length);
   sv('pot-collected','$'+col);sv('pot-admin','$'+adm);sv('pot-prize','$'+pot);sv('pot-paid-count',paid);
   sv('host-player-count',S.players.length);
-  var hd=el('host-draw-date'); if(hd) hd.value=new Date().toISOString().split('T')[0];
+  var hd=el('host-draw-date'); if(hd && !hd.value) hd.value=new Date().toISOString().split('T')[0];
   loadGameSettings(); renderHostDrawGrid(); renderHostPlayers(); renderMerchCodeList();
 }
 
@@ -1585,7 +1628,8 @@ function loadGameSettings() {
 
 function updateGameSetting() {
   function gv(id){var e=el(id);return e?e.value:'';}
-  S.game.month=gv('host-game-month');S.game.registrationDeadline=gv('host-reg-deadline');S.game.firstDrawDate=gv('host-first-draw');S.game.announcementBanner=gv('host-banner-msg');S.game.freeCode=gv('host-free-code')||'DENPASS';S.game.freeLimit=parseInt(gv('host-free-limit'))||10;S.game.maxPlayers=parseInt(gv('host-max-players'))||50;S.game.manualOverride=false;
+  S.game.month=gv('host-game-month');S.game.registrationDeadline=gv('host-reg-deadline');S.game.firstDrawDate=gv('host-first-draw');S.game.announcementBanner=gv('host-banner-msg');var fc=gv('host-free-code').trim(); S.game.freeCode=fc||'DENPASS';
+var fl=parseInt(gv('host-free-limit')); S.game.freeLimit=(!isNaN(fl)&&fl>0)?fl:10;S.game.maxPlayers=parseInt(gv('host-max-players'))||50;S.game.manualOverride=false;
   save();loadGameSettings();renderGameBanner();
 }
 
@@ -1636,21 +1680,45 @@ function renderHostPlayers() {
   var list=el('host-player-list'); if(!list) return;
   var draw=S.currentDraw!==null?S.draws[S.currentDraw]:null;
   if(!S.players.length){list.innerHTML='<div class="empty"><span class="empty-ic">👥</span><p>No players yet.</p></div>';return;}
-  list.innerHTML=S.players.map(function(p,idx){
+
+  // Auto-categorize into sections
+  var paid    = S.players.filter(function(p){return p.paid&&!p.isFree&&!p.isMerch;});
+  var merch   = S.players.filter(function(p){return p.isMerch;});
+  var free    = S.players.filter(function(p){return p.isFree&&!p.isMerch;});
+  var pending = S.players.filter(function(p){return !p.confirmed&&p.paid&&!p.isFree&&!p.isMerch;});
+
+  function playerCard(p,idx){
     var mA=draw?matchCount(p.setA,draw.numbers):0,mB=draw?matchCount(p.setB,draw.numbers):0,won=mA===6||mB===6;
     var avHTML=p.isPhoto?'<img src="'+p.avatar+'">':p.avatar;
     var typeTag=p.isMerch?'<span class="badge b-orange">🛍️ MERCH</span>':p.isFree?'<span class="badge b-purple">🆓 FREE</span>':'<span class="badge b-green">💰 PAID</span>';
-    var confTag=p.confirmed?'<span class="badge b-gold">✅</span>':'<span class="badge b-muted">Pending</span>';
+    var confTag=p.confirmed?'<span class="badge b-gold">✅ Confirmed</span>':'<span class="badge b-muted">⏳ Pending</span>';
     var matchTag=draw?'<span class="badge '+(won?'b-gold':Math.max(mA,mB)>=4?'b-red':'b-muted')+'">'+Math.max(mA,mB)+'/6</span>':'';
     var pct=draw?Math.round(Math.max(mA,mB)/6*100):0;
     var setAHTML=p.setA.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
     var setBHTML=p.setB.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
-    return '<div class="player-card'+(won?' p-winner':'')+'"><div class="p-top"><div class="p-av">'+avHTML+'</div><div style="flex:1;min-width:0;"><div class="p-name">#'+(idx+1)+' '+p.name+'</div><div class="p-email-lbl">'+p.email+'</div><div style="margin-top:3px;">'+typeTag+confTag+matchTag+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" onclick="togglePaid('+p.id+')" style="background:rgba(0,230,118,.18);">💰</button><button class="icon-btn" onclick="toggleConfirmed('+p.id+')" style="background:rgba(255,215,0,.18);">✅</button><button class="icon-btn" onclick="removePlayer('+p.id+')" style="background:rgba(200,16,46,.28);">🗑️</button></div></div>'+
+    return '<div class="player-card'+(won?' p-winner':'')+(!p.confirmed&&p.paid&&!p.isFree&&!p.isMerch?' p-pending':'')+'"><div class="p-top"><div class="p-av">'+avHTML+'</div><div style="flex:1;min-width:0;"><div class="p-name">'+p.name+'</div><div class="p-email-lbl">'+p.email+'</div><div style="margin-top:3px;">'+typeTag+' '+confTag+' '+matchTag+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" onclick="togglePaid('+p.id+')" title="Toggle Paid" style="background:rgba(0,230,118,.18);">💰</button><button class="icon-btn" onclick="toggleConfirmed('+p.id+')" title="Confirm Player" style="background:rgba(255,215,0,.18);">✅</button><button class="icon-btn" onclick="removePlayer('+p.id+')" title="Remove" style="background:rgba(200,16,46,.28);">🗑️</button></div></div>'+
       '<div class="mini-row"><span class="mini-lbl">Set A</span><div class="mini-nums">'+setAHTML+'</div></div>'+
       '<div class="mini-row"><span class="mini-lbl">Set B</span><div class="mini-nums">'+setBHTML+'</div></div>'+
       (draw?'<div style="margin-top:6px;"><div style="font-size:.63rem;color:var(--muted);margin-bottom:2px;">'+Math.max(mA,mB)+'/6 matches</div><div class="match-bar"><div class="match-fill" style="width:'+pct+'%;"></div></div></div>':'')+
       '</div>';
-  }).join('');
+  }
+
+  function section(title,color,players){
+    if(!players.length) return '';
+    return '<div style="font-family:Bebas Neue,cursive;font-size:.85rem;letter-spacing:1.5px;color:'+color+';margin:12px 0 6px;">'+title+' ('+players.length+')</div>'+
+      players.map(function(p,i){return playerCard(p,i);}).join('');
+  }
+
+  var pendingAlert = pending.length ?
+    '<div style="background:rgba(255,140,0,.12);border:1px solid rgba(255,140,0,.35);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.76rem;color:#FF8C00;font-weight:800;">⚠️ '+pending.length+' player'+(pending.length>1?'s':'')+' awaiting payment confirmation — tap ✅ to confirm</div>' : '';
+
+  list.innerHTML = pendingAlert +
+    section('⏳ AWAITING CONFIRMATION','#FF8C00', pending) +
+    section('💰 PAID PLAYERS','#00E676', paid.filter(function(p){return p.confirmed;})) +
+    section('🛍️ MERCH BONUS PLAYERS','#FF8C00', merch) +
+    section('🆓 FREE PLAYERS','#BBA8DD', free);
+
+  if(!S.players.length) list.innerHTML='<div class="empty"><span class="empty-ic">👥</span><p>No players yet.</p></div>';
 }
 
 function togglePaid(id){var p=S.players.filter(function(x){return x.id===id;})[0];if(p){p.paid=!p.paid;save();renderHost();}}
@@ -2045,124 +2113,161 @@ function copyWelcomeMsg() {
   copyText(lines.join("\n---\n"), confirmed.length + " welcome messages copied!");
 }
 
-// ── Firebase Config ──
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBPo7s9VMXLcihSb2eQcXH16K-PgkfBEvQ",
-  authDomain: "lyons-den-lotto.firebaseapp.com",
-  projectId: "lyons-den-lotto",
-  storageBucket: "lyons-den-lotto.firebasestorage.app",
-  messagingSenderId: "198397963971",
-  appId: "1:198397963971:web:6960066f662627d19afc76"
-};
 
-// ── Firebase state ──
-var db = null;
-var fbUnsubscribe = null;
+// ──────────────────────────────────────────────
+// FIREBASE REST API - No SDK needed, no CDN
+// ──────────────────────────────────────────────
+var FB_PROJECT = 'lyons-den-lotto';
+var FB_API_KEY = 'AIzaSyBPo7s9VMXLcihSb2eQcXH16K-PgkfBEvQ';
+var FB_BASE = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents';
+var FB_DOC  = FB_BASE + '/gamestate/main';
+var fbPollTimer = null;
+var fbLastHash = '';
 
-// ── Initialize Firebase ──
-function initFirebase() {
-  var attempts = 0;
-  function tryInit() {
-    attempts++;
-    if (typeof firebase === 'undefined') {
-      if (attempts < 20) {
-        setTimeout(tryInit, 300);
-      } else {
-        console.warn("Firebase not available after retries - running in local mode");
-      }
-      return;
-    }
-    try {
-      // Only initialize if not already initialized
-      if (!firebase.apps || firebase.apps.length === 0) {
-        firebase.initializeApp(FIREBASE_CONFIG);
-      }
-      db = firebase.firestore();
-      console.log("Firebase connected!");
-      listenToGameState();
-    } catch(e) {
-      console.error("Firebase init failed:", e);
-    }
+// Convert JS object to Firestore REST format
+function toFirestore(obj) {
+  if (obj === null || obj === undefined) return { nullValue: null };
+  if (typeof obj === 'boolean') return { booleanValue: obj };
+  if (typeof obj === 'number') return Number.isInteger(obj) ? { integerValue: String(obj) } : { doubleValue: obj };
+  if (typeof obj === 'string') return { stringValue: obj };
+  if (Array.isArray(obj)) return { arrayValue: { values: obj.map(toFirestore) } };
+  if (typeof obj === 'object') {
+    var fields = {};
+    Object.keys(obj).forEach(function(k) { fields[k] = toFirestore(obj[k]); });
+    return { mapValue: { fields: fields } };
   }
-  tryInit();
+  return { stringValue: String(obj) };
 }
 
-// ── Real-time listener - syncs ALL devices instantly ──
-function listenToGameState() {
-  if (!db) return;
-  if (fbUnsubscribe) fbUnsubscribe();
-  fbUnsubscribe = db.collection("gamestate").doc("main").onSnapshot(function(doc) {
-    if (doc.exists) {
-      var data = doc.data();
-      // Merge remote state into S carefully
-      if (data.game)        S.game = data.game;
-      if (data.players)     S.players = data.players;
-      if (data.draws)       S.draws = data.draws;
-      if (data.currentDraw !== undefined) S.currentDraw = data.currentDraw;
-      if (data.pastWinners) S.pastWinners = data.pastWinners;
-      // Re-render active page
-      var activePage = document.querySelector(".page.active");
-      if (activePage) {
-        var pageId = activePage.id.replace("page-", "");
-        if (pageId === "home")    renderGameBanner();
-        if (pageId === "results") { renderResults(); }
-        if (pageId === "host")    renderHost();
-      }
-    } else {
-      // No doc yet - push defaults
-      fbSave();
-    }
-  }, function(err) {
-    console.error("Snapshot error:", err);
-  });
+// Convert Firestore REST format back to JS object
+function fromFirestore(val) {
+  if (!val) return null;
+  if ('nullValue' in val) return null;
+  if ('booleanValue' in val) return val.booleanValue;
+  if ('integerValue' in val) return parseInt(val.integerValue);
+  if ('doubleValue' in val) return val.doubleValue;
+  if ('stringValue' in val) return val.stringValue;
+  if ('arrayValue' in val) return (val.arrayValue.values || []).map(fromFirestore);
+  if ('mapValue' in val) {
+    var out = {};
+    var fields = val.mapValue.fields || {};
+    Object.keys(fields).forEach(function(k) { out[k] = fromFirestore(fields[k]); });
+    return out;
+  }
+  return null;
 }
 
-// ── Save to Firebase (replaces localStorage save) ──
+// Save state to Firestore via REST PATCH
 function fbSave() {
-  if (!db) { localSave(); return; }
-  db.collection("gamestate").doc("main").set({
-    game:        S.game,
-    players:     S.players,
-    draws:       S.draws,
-    currentDraw: S.currentDraw,
-    pastWinners: S.pastWinners || [],
-    updatedAt:   firebase.firestore.FieldValue.serverTimestamp()
+  var body = {
+    fields: {
+      game:        toFirestore(S.game),
+      players:     toFirestore(S.players),
+      draws:       toFirestore(S.draws),
+      currentDraw: toFirestore(S.currentDraw),
+      pastWinners: toFirestore(S.pastWinners || [])
+    }
+  };
+  fetch(FB_DOC + '?key=' + FB_API_KEY, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r) {
+    if (!r.ok) { r.text().then(function(t){ console.error('fbSave error:', t); }); }
   }).catch(function(e) {
-    console.error("Save failed:", e);
+    console.error('fbSave failed:', e);
     localSave();
   });
+  localSave(); // Always save locally too as backup
 }
 
-// ── Fallback local save ──
-function localSave() {
-  try { localStorage.setItem("lyonsden_v2", JSON.stringify(S)); } catch(e) {}
+// Load state from Firestore via REST GET
+function fbLoad(callback) {
+  fetch(FB_DOC + '?key=' + FB_API_KEY)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.fields) {
+        var remote = fromFirestore({ mapValue: { fields: data.fields } });
+        if (remote.game)        S.game = remote.game;
+        if (remote.players)     S.players = remote.players;
+        if (remote.draws)       S.draws = remote.draws;
+        if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
+        if (remote.pastWinners) S.pastWinners = remote.pastWinners;
+        localSave();
+      }
+      if (callback) callback();
+    })
+    .catch(function(e) {
+      console.warn('fbLoad failed, using local state:', e);
+      if (callback) callback();
+    });
 }
 
-// ── Load initial state ──
-function loadState() {
-  // Start with defaults - Firebase listener will populate real data
-  try {
-    var raw = localStorage.getItem("lyonsden_v2");
-    if (raw) {
-      var parsed = JSON.parse(raw);
-      if (!parsed.game)              parsed.game = defaultGame();
-      if (!parsed.game.notifyEmails) parsed.game.notifyEmails = [];
-      if (!parsed.game.merchCodes)   parsed.game.merchCodes = [];
-      if (!parsed.game.freeCode)     parsed.game.freeCode = "DENPASS";
-      if (!parsed.game.freeLimit)    parsed.game.freeLimit = 10;
-      if (!parsed.pastWinners)       parsed.pastWinners = [];
-      return parsed;
-    }
-  } catch(e) {}
-  return { players: [], draws: [], currentDraw: null, pastWinners: [], game: defaultGame() };
+// Poll Firestore every 8 seconds for live updates
+function startFbPolling() {
+  if (fbPollTimer) clearInterval(fbPollTimer);
+  fbPollTimer = setInterval(function() {
+    fetch(FB_DOC + '?key=' + FB_API_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data || !data.fields) return;
+        var hash = JSON.stringify(data.fields).length + (data.updateTime || '');
+        if (hash === fbLastHash) return; // No change
+        fbLastHash = hash;
+        var remote = fromFirestore({ mapValue: { fields: data.fields } });
+        if (remote.game)        S.game = remote.game;
+        if (remote.players)     S.players = remote.players;
+        if (remote.draws)       S.draws = remote.draws;
+        if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
+        if (remote.pastWinners) S.pastWinners = remote.pastWinners;
+        localSave();
+        // Re-render active page
+        var activePage = document.querySelector('.page.active');
+        if (activePage) {
+          var pageId = activePage.id.replace('page-', '');
+          if (pageId === 'home')    renderGameBanner();
+          if (pageId === 'results') renderResults();
+          if (pageId === 'host')    renderHost();
+        }
+      })
+      .catch(function() {}); // Silent fail on poll errors
+  }, 8000);
 }
 
-// ── save() now writes to Firebase ──
-function save() { fbSave(); }
+function save()      { fbSave(); }
+function localSave() { try { localStorage.setItem('lyonsden_v2', JSON.stringify(S)); } catch(e) {} }
 
+function initFirebase() {
+  console.log('Connecting to Firebase via REST API...');
+  fbLoad(function() {
+    console.log('Firebase connected! Data loaded.');
+    renderGameBanner();
+    startFbPolling();
+  });
+}
+
+
+
+// ── Post-Registration Share ──
+function shareAfterReg() {
+  var text = "I just joined Bingo Lotto in the Lyon\u2019s Den! \uD83E\uDD81\uD83D\uDC51\n" +
+    "Pick your numbers and play for the jackpot!\n" +
+    "Sign up here: lyonsdenbingolotto.netlify.app\n" +
+    "#LyonsDen #PrettyLyon #BingoLotto";
+  if (navigator.share) {
+    navigator.share({
+      title: "Bingo Lotto in the Lyon\u2019s Den",
+      text: text,
+      url: "https://lyonsdenbingolotto.netlify.app"
+    }).catch(function() { copyText(text, "Share text copied!"); });
+  } else {
+    copyText(text, "Share text copied \u2014 paste to your story! \uD83D\uDCF2");
+  }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-  var hdDate=el('host-draw-date'); if(hdDate) hdDate.value=new Date().toISOString().split('T')[0];
+  var hdDate=el('host-draw-date'); if(hdDate && !hdDate.value) hdDate.value=new Date().toISOString().split('T')[0];
+  initMusicBar();
   renderGameBanner();
   setTimeout(initA2HS, 1200);
   initFirebase();
