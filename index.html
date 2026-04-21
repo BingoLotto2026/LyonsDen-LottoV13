@@ -1129,16 +1129,30 @@ var SQUARE    = 'https://square.link/u/OEz4wZ72';
 var CONTACT   = 'Bingolotto.game@gmail.com';
 var AVATARS   = ['🦁','🎤','💅','👑','🔥','💎','🎵','🎱','🌟','💋','🐯','🎯','🏆','💜','🎀','🎸','🦋','🌙','⚡','🍀','🌹','🎭','👸','🎺'];
 
-var S = loadState();
-
-// loadState and save handled by Firebase below
-
+// ── loadState reads from localStorage; Firebase syncs on top ──
 function defaultGame() {
   return { month:'', registrationOpen:false, registrationDeadline:'', firstDrawDate:'',
            announcementBanner:'', notifyEmails:[], merchCodes:[], freeCode:'DENPASS', freeLimit:10, manualOverride:false, maxPlayers:50 };
 }
 
-// save() handled by Firebase below
+function loadState() {
+  try {
+    var raw = localStorage.getItem('lyonsden_v2');
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (!parsed.game)              parsed.game = defaultGame();
+      if (!parsed.game.notifyEmails) parsed.game.notifyEmails = [];
+      if (!parsed.game.merchCodes)   parsed.game.merchCodes = [];
+      if (!parsed.game.freeCode)     parsed.game.freeCode = 'DENPASS';
+      if (!parsed.game.freeLimit)    parsed.game.freeLimit = 10;
+      if (!parsed.pastWinners)       parsed.pastWinners = [];
+      return parsed;
+    }
+  } catch(e) {}
+  return { players:[], draws:[], currentDraw:null, pastWinners:[], game:defaultGame() };
+}
+
+var S = loadState(); // Called after loadState is defined
 
 var selAvatar = '🦁';
 var photoData = null;
