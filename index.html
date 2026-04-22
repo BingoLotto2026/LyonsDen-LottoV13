@@ -1241,7 +1241,7 @@ var PAGE_IDS = ['home','register','howto','payment','results','host-login','host
 var NAV_IDS  = { home:'bn-home', register:'bn-register', results:'bn-results', payment:'bn-payment', 'host-login':'bn-host-login', host:'bn-host-login', howto:'bn-home', winner:'bn-results', terms:'bn-home', privacy:'bn-home' };
 
 function showPage(name) {
-  if (!hostLoggedIn) { try { hostLoggedIn = sessionStorage.getItem('hostLoggedIn') === '1'; } catch(e) {} }
+  if (!hostLoggedIn) { try { hostLoggedIn = sessionStorage.getItem('hostLoggedIn') === '1' || localStorage.getItem('hostLoggedIn') === '1'; } catch(e) {} }
   if (name === 'host' && !hostLoggedIn) { showPage('host-login'); return; }
   PAGE_IDS.forEach(function(p) {
     var e = el('page-' + p);
@@ -1544,7 +1544,7 @@ function handlePhoto(input) {
 
 function applyFreeCode() {
   var inp=el('free-code-input'),status=el('free-code-status'); if(!inp||!status) return;
-  var code=inp.value.trim().toUpperCase(), valid=(S.game.freeCode||'DENPASS').toUpperCase();
+  var code=inp.value.trim().toUpperCase(), valid=(S.game.freeCode||'DENPASS').trim().toUpperCase();
   var freeUsed=S.players.filter(function(p){return p.isFree;}).length, freeLimit=S.game.freeLimit||10;
   if(code!==valid){status.style.color='#FF6B6B';status.textContent='Invalid code. Please check and try again.';return;}
   if(freeUsed>=freeLimit){status.style.color='#FF6B6B';status.textContent='All free spots are taken! ('+freeUsed+'/'+freeLimit+')';return;}
@@ -1563,6 +1563,7 @@ function applyMerchCode() {
 
 function confirmEntry() {
   if (isSoldOut()) { showToast('Sorry - all spots just filled up!', true); showPage('home'); return; }
+  if (!S.game.registrationOpen) { showToast('Registration is closed - you cannot register at this time.', true); showPage('home'); return; }
   var name=(el('reg-name')||{value:''}).value.trim(), email=(el('reg-email')||{value:''}).value.trim();
   var player={id:Date.now(),name:name,email:email,avatar:photoData||selAvatar,isPhoto:!!photoData,isFree:regIsFree&&!regIsMerch,isMerch:regIsMerch,setA:regPickedA.slice(),setB:regPickedB.slice(),confirmed:false,paid:!regIsFree||regIsMerch,date:new Date().toLocaleDateString()};
   S.players.push(player);
@@ -1605,14 +1606,14 @@ function doLogin() {
   var pw=(el('host-pw')||{value:''}).value;
   if(pw===HOST_PW){
     hostLoggedIn=true;
-    try { sessionStorage.setItem('hostLoggedIn','1'); } catch(e) {}
+    try { sessionStorage.setItem('hostLoggedIn','1'); localStorage.setItem('hostLoggedIn','1'); } catch(e) {}
     el('host-pw').value='';
     showPage('host');
     showToast('Welcome to the Control Room!');
   } else showToast('Wrong password!',true);
 }
 
-function hostLogout(){hostLoggedIn=false;try{sessionStorage.removeItem('hostLoggedIn');}catch(e){}showPage('home');}
+function hostLogout(){hostLoggedIn=false;try{sessionStorage.removeItem('hostLoggedIn');localStorage.removeItem('hostLoggedIn');}catch(e){}showPage('home');}
 
 function renderHost() {
   var paid=S.players.filter(function(p){return p.paid;}).length;
@@ -1642,14 +1643,20 @@ function loadGameSettings() {
 
 function updateGameSetting() {
   function gv(id){var e=el(id);return e?e.value:'';}
-  S.game.month=gv('host-game-month');S.game.registrationDeadline=gv('host-reg-deadline');S.game.firstDrawDate=gv('host-first-draw');S.game.announcementBanner=gv('host-banner-msg');var fc=gv('host-free-code').trim(); S.game.freeCode=fc||'DENPASS';
+  S.game.month=gv('host-game-month');S.game.registrationDeadline=gv('host-reg-deadline');S.game.firstDrawDate=gv('host-first-draw');S.game.announcementBanner=gv('host-banner-msg');var fc=gv('host-free-code').trim(); S.game.freeCode=fc.length>0?fc:'DENPASS';
 var fl=parseInt(gv('host-free-limit')); S.game.freeLimit=(!isNaN(fl)&&fl>0)?fl:10;S.game.maxPlayers=parseInt(gv('host-max-players'))||50;S.game.manualOverride=false;
   save();loadGameSettings();renderGameBanner();
 }
 
 function toggleRegistration() {
-  S.game.registrationOpen=!S.game.registrationOpen;S.game.manualOverride=true;save();loadGameSettings();renderGameBanner();
-  showToast(S.game.registrationOpen?'Registration is now OPEN!':'Registration is now CLOSED!');
+  S.game.registrationOpen = !S.game.registrationOpen;
+  S.game.manualOverride = true;
+  save();
+  loadGameSettings();
+  renderGameBanner();
+  showToast(S.game.registrationOpen ? 'Registration is now OPEN! 🟢' : 'Registration is now CLOSED! 🔴');
+  // Force immediate sync so all devices see it within 1 second
+  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 1000);
 }
 
 function removeNotifyEmail(i){S.game.notifyEmails.splice(i,1);save();loadGameSettings();}
@@ -1763,7 +1770,8 @@ function addFreePlayerManual(){
   var freeUsed=S.players.filter(function(p){return p.isFree;}).length,freeLimit=S.game.freeLimit||10;
   if(freeUsed>=freeLimit){if(status){status.style.color='#FF6B6B';status.textContent='Free player limit reached ('+freeLimit+'/'+freeLimit+').';}return;}
   S.players.push({id:Date.now(),name:name,email:email,avatar:'🆓',isPhoto:false,isFree:true,isMerch:false,setA:setA,setB:setB,confirmed:true,paid:false,date:new Date().toLocaleDateString()});
-  save();['free-player-name','free-player-email','free-player-seta','free-player-setb'].forEach(function(id){var e=el(id);if(e)e.value='';});
+  if(email&&email.indexOf('@')>-1){if(!S.game.notifyEmails)S.game.notifyEmails=[];if(S.game.notifyEmails.indexOf(email)<0)S.game.notifyEmails.push(email);}
+  save();['free-player-name','free-player-email','free-player-seta','free-player-setb'].forEach(function(id){var e=el(id);if(e)e.value=''});
   if(status){status.style.color='#00E676';status.textContent='Free player added! ('+(freeUsed+1)+'/'+freeLimit+' spots used)';}
   renderHost();
 }
@@ -2241,7 +2249,7 @@ function startFbPolling() {
           var pageId = activePage.id.replace('page-', '');
           if (pageId === 'home')    renderGameBanner();
           if (pageId === 'results') renderResults();
-          if (pageId === 'host')    renderHost();
+          if (pageId === 'host')    { loadGameSettings(); renderHostPlayers(); renderMerchCodeList(); }
         }
       })
       .catch(function() {}); // Silent fail on poll errors
@@ -2288,4 +2296,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </body>
-</html>
+</html
