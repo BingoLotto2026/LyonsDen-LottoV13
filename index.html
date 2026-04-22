@@ -378,7 +378,16 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
 
   <!-- Notify Me — BELOW the banner -->
   <div style="padding:10px 16px 12px;">
-    <div class="notify-box">
+    <div style="padding:0 16px 10px;">
+    <div style="background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.15);border-radius:12px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <div style="font-size:.76rem;font-weight:800;color:var(--gold);">🔔 Game Notifications</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-top:2px;">Get buzzed when draws happen & registration opens</div>
+      </div>
+      <button id="notify-permission-btn" onclick="requestNotifyPermission()" style="flex-shrink:0;padding:7px 12px;border-radius:9px;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.08);color:var(--gold);font-size:.68rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">🔔 Enable</button>
+    </div>
+  </div>
+  <div class="notify-box">
       <h4 style="font-size:.88rem;font-weight:800;color:var(--gold);margin-bottom:5px;">🔔 Get Notified About the Next Game!</h4>
       <p style="font-size:.76rem;color:rgba(255,255,255,.65);">Enter your email to be notified when registration opens and draw results are in.</p>
       <div class="notify-row">
@@ -959,6 +968,14 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
       <div class="num-grid" id="host-draw-grid"></div>
       <button class="btn btn-gold" id="host-run-draw" onclick="runDraw()" style="width:100%;" disabled>🎱 Run This Draw!</button>
       <button class="btn" onclick="triggerReveal()" style="background:linear-gradient(135deg,#6A0DAD,#3D0070);color:#fff;font-weight:900;margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">🎰 Drop the Numbers — Trigger Reveal</button>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);">
+        <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:8px;">📲 Send Push Notifications</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button onclick="hostNotifyRegOpen()" style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(0,230,118,.12);color:#00E676;font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(0,230,118,.25);">🟢 Notify Players — Registration Open</button>
+          <button onclick="hostNotifyDrawOpen()" style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(255,215,0,.1);color:var(--gold);font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(255,215,0,.25);">🎰 Notify Players — Numbers Dropping Now!</button>
+          <button onclick="hostNotifyResults()" style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(200,16,46,.12);color:#FF6B6B;font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(200,16,46,.25);">🏆 Notify Players — Results Are In!</button>
+        </div>
+      </div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);">
         <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:8px;">📋 Post Draw Proof</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;">Help players verify these are the real NY Lotto numbers.</div>
@@ -1655,8 +1672,10 @@ function toggleRegistration() {
   loadGameSettings();
   renderGameBanner();
   showToast(S.game.registrationOpen ? 'Registration is now OPEN! 🟢' : 'Registration is now CLOSED! 🔴');
-  // Force immediate sync so all devices see it within 1 second
-  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 1000);
+  // Fire 3 rapid syncs so all devices update quickly
+  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 500);
+  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 1500);
+  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 3000);
 }
 
 function removeNotifyEmail(i){S.game.notifyEmails.splice(i,1);save();loadGameSettings();}
@@ -2216,6 +2235,8 @@ function fbLoad(callback) {
         if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
         if (remote.pastWinners) S.pastWinners = remote.pastWinners;
         localSave();
+        // Always re-render home when data loads
+        renderGameBanner();
       }
       if (callback) callback();
     })
@@ -2243,6 +2264,8 @@ function startFbPolling() {
         if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
         if (remote.pastWinners) S.pastWinners = remote.pastWinners;
         localSave();
+        // Check for host-triggered notifications
+        checkForPushFromHost();
         // Re-render active page
         var activePage = document.querySelector('.page.active');
         if (activePage) {
@@ -2253,7 +2276,7 @@ function startFbPolling() {
         }
       })
       .catch(function() {}); // Silent fail on poll errors
-  }, 8000);
+  }, 3000);
 }
 
 function save()      { fbSave(); }
@@ -2287,13 +2310,119 @@ function shareAfterReg() {
   }
 }
 
+
+// ──────────────────────────────────────────────
+// PUSH NOTIFICATIONS (Browser Native)
+// ──────────────────────────────────────────────
+function requestNotifyPermission() {
+  if (!('Notification' in window)) {
+    showToast('Your browser does not support notifications', true);
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    showToast('Notifications already enabled! ✅');
+    updateNotifyBtn();
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    showToast('Notifications blocked - please enable in browser settings', true);
+    return;
+  }
+  Notification.requestPermission().then(function(perm) {
+    if (perm === 'granted') {
+      showToast('Notifications enabled! You will be notified of draws 🦁');
+      updateNotifyBtn();
+      // Save preference
+      try { localStorage.setItem('notifyOptIn','1'); } catch(e) {}
+    } else {
+      showToast('Notifications not enabled - you can change this in settings', true);
+    }
+  });
+}
+
+function updateNotifyBtn() {
+  var btn = el('notify-permission-btn');
+  if (!btn) return;
+  if (!('Notification' in window)) {
+    btn.textContent = 'Notifications not supported';
+    btn.style.opacity = '0.4';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    btn.textContent = '🔔 Notifications ON ✅';
+    btn.style.background = 'rgba(0,230,118,.15)';
+    btn.style.borderColor = 'rgba(0,230,118,.4)';
+    btn.style.color = '#00E676';
+  } else if (Notification.permission === 'denied') {
+    btn.textContent = '🔕 Notifications Blocked';
+    btn.style.opacity = '0.5';
+  } else {
+    btn.textContent = '🔔 Tap to Enable Notifications';
+  }
+}
+
+function sendPushToAll(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    var n = new Notification(title, {
+      body: body,
+      icon: 'https://lyonsdenbingolotto.netlify.app/favicon.ico',
+      badge: 'https://lyonsdenbingolotto.netlify.app/favicon.ico',
+      tag: 'lyonsden-' + Date.now(),
+      requireInteraction: false
+    });
+    n.onclick = function() { window.focus(); n.close(); };
+    setTimeout(function() { n.close(); }, 8000);
+  } catch(e) { console.warn('Push notification failed:', e); }
+}
+
+// Host triggers these from Control Room
+function hostNotifyDrawOpen() {
+  var msg = S.game.month ? S.game.month + ' draw is happening NOW!' : 'The draw is happening NOW!';
+  sendPushToAll('🦁 Lyon\'s Den — Numbers Dropping!', msg + ' Open the app to watch live!');
+  showToast('Notification sent to all opted-in players!');
+  // Also save to Firebase so other devices pick it up
+  if (!S.game.lastNotif) S.game.lastNotif = {};
+  S.game.lastNotif = { type:'draw', msg:msg, time:Date.now() };
+  save();
+}
+
+function hostNotifyRegOpen() {
+  var msg = S.game.month ? S.game.month + ' registration is now OPEN!' : 'Registration is now OPEN!';
+  sendPushToAll('🦁 Lyon\'s Den — Join Now!', msg + ' Grab your spot before it fills up!');
+  showToast('Notification sent!');
+  if (!S.game.lastNotif) S.game.lastNotif = {};
+  S.game.lastNotif = { type:'reg', msg:msg, time:Date.now() };
+  save();
+}
+
+function hostNotifyResults() {
+  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
+  var nums = draw ? draw.numbers.join(', ') : '???';
+  sendPushToAll('🦁 Lyon\'s Den — Results Are In!', 'Winning numbers: ' + nums + '. Check the Den Board now!');
+  showToast('Results notification sent!');
+}
+
+// Check for new notifications from Firebase (fired on poll)
+var lastNotifSeen = 0;
+function checkForPushFromHost() {
+  if (!S.game || !S.game.lastNotif) return;
+  var notif = S.game.lastNotif;
+  if (!notif.time || notif.time <= lastNotifSeen) return;
+  lastNotifSeen = notif.time;
+  // Don't notify yourself if you're the host
+  if (hostLoggedIn) return;
+  sendPushToAll('🦁 Lyon\'s Den', notif.msg || 'Check the app for updates!');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var hdDate=el('host-draw-date'); if(hdDate && !hdDate.value) hdDate.value=new Date().toISOString().split('T')[0];
   initMusicBar();
   renderGameBanner();
   setTimeout(initA2HS, 1200);
+  setTimeout(updateNotifyBtn, 800);
   initFirebase();
 });
 </script>
 </body>
-</html
+</html>
