@@ -753,43 +753,95 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <button class="back-btn" onclick="showPage('home')">←</button>
     <div class="page-title">💳 Payment</div>
   </div>
+
+  <!-- Price Hero -->
   <div style="background:linear-gradient(135deg,#0A0500,#1A0A00);padding:22px;text-align:center;border-bottom:2px solid rgba(255,215,0,.12);">
     <div style="font-size:.7rem;font-weight:800;letter-spacing:4px;color:var(--gold2);margin-bottom:3px;">PARTICIPATION FEE</div>
     <div class="bebas" style="font-size:4.5rem;line-height:1;color:var(--gold);text-shadow:0 4px 20px rgba(255,215,0,.35);">$20</div>
     <div style="font-size:.76rem;color:rgba(255,255,255,.5);margin-top:3px;">2 Sets · 6 Numbers Each · Wed &amp; Sat Draws</div>
   </div>
+
   <div class="section-pad">
-    <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:11px;">Choose Your Payment Method</div>
-    <a href="https://square.link/u/OEz4wZ72" target="_blank" style="text-decoration:none;display:block;margin-bottom:9px;">
-      <div class="pay-card" style="border-color:rgba(255,215,0,.35);background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,140,0,.04));">
-        <div class="pay-icon" style="background:linear-gradient(135deg,var(--gold),var(--gold2));">⬛</div>
-        <div style="flex:1;"><div style="font-weight:800;color:var(--gold);">✅ Square — Recommended</div><div style="font-size:.76rem;color:var(--gold2);margin-top:1px;">square.link/u/OEz4wZ72</div><div style="font-size:.68rem;color:var(--muted);margin-top:1px;">Safest · Auto receipts · Tracks payments</div></div>
-        <div style="color:var(--gold);">›</div>
+
+    <!-- Square Primary CTA -->
+    <a href="https://square.link/u/OEz4wZ72" target="_blank" style="text-decoration:none;display:block;margin-bottom:14px;">
+      <div style="background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,140,0,.06));border:2px solid rgba(255,215,0,.4);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;">
+        <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#FF8C00);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">⬛</div>
+        <div style="flex:1;">
+          <div style="font-family:Bebas Neue,cursive;font-size:1.1rem;letter-spacing:1.5px;color:var(--gold);">Pay with Square</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.6);margin-top:3px;line-height:1.6;">The only payment portal you need — accepts everything listed below</div>
+        </div>
+        <div style="font-size:1.4rem;color:var(--gold);">›</div>
       </div>
     </a>
-    <div style="text-align:center;font-size:.7rem;color:var(--muted);padding:3px 0;margin-bottom:6px;">— or pay via —</div>
-    <div class="pay-card" onclick="copyText('Bingolotto.game@gmail.com','Email copied! Open PayPal and send $20.')">
-      <div class="pay-icon" style="background:#003087;">🅿️</div>
-      <div style="flex:1;"><div style="font-weight:800;color:#fff;">PayPal</div><div style="font-size:.78rem;color:var(--gold);font-weight:700;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b3f1daddd4dcdfdcc7c7dc9dd4d2ded6f3d4ded2dadf9dd0dcde">[email&#160;protected]</a></div><div style="font-size:.68rem;color:var(--muted);">Tap to copy · Send $20 as Friends &amp; Family</div></div>
-      <div style="color:var(--gold);font-size:1.1rem;">📋</div>
+
+    <!-- What Square accepts -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px;margin-bottom:14px;">
+      <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">✅ Square Accepts All of These</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.4rem;margin-bottom:3px;">💳</div>
+          <div style="font-size:.72rem;font-weight:800;color:#fff;">Debit Card</div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);">Visa, Mastercard, Amex</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.4rem;margin-bottom:3px;">💳</div>
+          <div style="font-size:.72rem;font-weight:800;color:#fff;">Credit Card</div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);">All major cards</div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,.06);">
+          <div style="font-size:1.4rem;margin-bottom:3px;">🍎</div>
+          <div style="font-size:.72rem;font-weight:800;color:#fff;">Apple Pay</div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);">One tap on iPhone</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.4rem;margin-bottom:3px;">🤖</div>
+          <div style="font-size:.72rem;font-weight:800;color:#fff;">Google Pay</div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);">One tap on Android</div>
+        </div>
+        <div style="background:rgba(0,230,118,.05);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(0,230,118,.15);">
+          <div style="font-size:1.4rem;margin-bottom:3px;">💸</div>
+          <div style="font-size:.72rem;font-weight:800;color:#00E676;">Cash App Pay</div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);">Via Square link</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.4rem;margin-bottom:3px;">🔄</div>
+          <div style="font-size:.72rem;font-weight:800;color:#fff;">Afterpay</div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);">Buy now pay later</div>
+        </div>
+      </div>
     </div>
-    <div class="pay-card" onclick="copyText('Bingolotto.game@gmail.com','Email copied! Open Venmo or Cash App and send $20.')">
-      <div class="pay-icon" style="background:linear-gradient(135deg,#008CFF,#00D632);">💙</div>
-      <div style="flex:1;"><div style="font-weight:800;color:#fff;">Venmo / Cash App</div><div style="font-size:.78rem;color:var(--gold);font-weight:700;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="27654e4940484b485353480940464a4267404a464e4b0944484a">[email&#160;protected]</a></div><div style="font-size:.68rem;color:var(--muted);">Tap to copy · Send $20 · Include your name in note</div></div>
-      <div style="color:var(--gold);font-size:1.1rem;">📋</div>
+
+    <!-- Instructions -->
+    <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.14);border-radius:12px;padding:13px;margin-bottom:14px;">
+      <div style="font-weight:800;color:var(--gold);font-size:.83rem;margin-bottom:7px;">📝 How to Pay</div>
+      <div style="font-size:.77rem;color:rgba(255,255,255,.7);line-height:1.8;">
+        1️⃣ &nbsp;Tap <strong style="color:#fff;">Pay with Square</strong> above<br>
+        2️⃣ &nbsp;Send exactly <strong style="color:var(--gold);">$20</strong> using any method<br>
+        3️⃣ &nbsp;Include your <strong style="color:#fff;">display name</strong> in the payment note<br>
+        4️⃣ &nbsp;Come back and complete your number registration<br>
+        5️⃣ &nbsp;Host confirms your payment within <strong style="color:#fff;">24 hours</strong> ✅
+      </div>
     </div>
-    <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.14);border-radius:11px;padding:13px;margin:4px 0 12px;">
-      <div style="font-weight:800;color:var(--gold);font-size:.83rem;margin-bottom:5px;">📝 Instructions</div>
-      <div style="font-size:.77rem;color:rgba(255,255,255,.65);line-height:1.7;">1. Send exactly <strong style="color:var(--gold);">$20</strong> using any method above<br>2. Include your <strong>display name</strong> in the payment note<br>3. Complete your number selection in the app<br>4. Tap Confirm Entry — host verifies &amp; confirms within 24hrs</div>
+
+    <!-- Receipt note -->
+    <div style="background:rgba(106,13,173,.07);border:1px solid rgba(106,13,173,.2);border-radius:12px;padding:11px 13px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:1.2rem;flex-shrink:0;">🧾</span>
+      <div style="font-size:.73rem;color:rgba(255,255,255,.7);line-height:1.7;">Square sends you an <strong style="color:#fff;">automatic receipt</strong> by email or text after payment. Save it as your proof of payment. Your Entry ID in the app is your game reference number.</div>
     </div>
+
+    <!-- Free Entry -->
     <div class="free-entry-box">
       <h4>🆓 No Purchase Necessary</h4>
-      <p style="font-size:.77rem;color:rgba(255,255,255,.7);">DM <a href="https://instagram.com/iamprettylyon" target="_blank" style="color:var(--green);">@iamprettylyon</a> or email <a href="#" onclick="copyText('Bingolotto.game@gmail.com','Email copied!')" style="color:var(--green);"><span class="__cf_email__" data-cfemail="4c0e25222b232023383823622b2d21290c2b212d2520622f2321">[email&#160;protected]</span></a> with "FREE ENTRY" + your name and 2 sets of numbers.</p>
+      <p style="font-size:.77rem;color:rgba(255,255,255,.7);">DM <a href="https://instagram.com/iamprettylyon" target="_blank" style="color:var(--green);">@iamprettylyon</a> with "FREE ENTRY" + your name and 2 sets of numbers.</p>
       <div class="warn-box" style="margin-top:7px;">⚠️ Free entries are <strong style="color:#fff;">not eligible for cash jackpot prizes.</strong> Max 2 free winners per game. Merch prizes only.</div>
     </div>
+
     <button class="btn btn-gold" onclick="showPage('register')" style="width:100%;">🎟️ Register &amp; Pick Numbers</button>
+
   </div>
 </div>
+
 
 <!-- RESULTS -->
 <div class="page" id="page-results">
@@ -1105,7 +1157,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">PAYMENTS</div>
-      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">Payments are processed through third-party platforms (Square, PayPal, Venmo, Cash App). We do not store your payment information. Each platform's own privacy policy applies.</p>
+      <p style="font-size:.81rem;color:rgba(255,255,255,.75);line-height:1.8;">Payments are processed through Square. We do not store your payment information. Each platform's own privacy policy applies.</p>
     </div>
     <div class="card">
       <div style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">CONTACT</div>
@@ -1489,7 +1541,7 @@ function buildPayStep() {
     } else {
       linksEl.innerHTML =
         '<a href="'+SQUARE+'" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:11px;border:none;font-family:Montserrat,sans-serif;font-weight:900;font-size:.88rem;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1A0500;text-decoration:none;">&#9635; Pay $20 via Square — Recommended</a>' +
-        '<div onclick="copyText(\''+CONTACT+'\',\'Email copied! Open PayPal and send $20.\')" style="background:var(--card);border-radius:12px;border:1px solid rgba(255,255,255,.06);padding:13px;display:flex;align-items:center;gap:11px;cursor:pointer;"><div style="width:44px;height:44px;border-radius:10px;background:#003087;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;color:#fff;font-weight:900;">P</div><div style="flex:1;"><div style="font-weight:800;font-size:.88rem;color:#fff;">PayPal / Venmo / Cash App</div><div style="font-size:.76rem;color:#FFD700;">'+CONTACT+'</div><div style="font-size:.67rem;color:var(--muted);">Tap to copy · Send $20 · Include your name in note</div></div><div style="color:#FFD700;font-size:1.1rem;">&#128203;</div></div>';
+        '<div onclick="copyText(\''+CONTACT+'\',\'Email copied!\')" style="background:var(--card);border-radius:12px;border:1px solid rgba(255,255,255,.06);padding:13px;display:flex;align-items:center;gap:11px;cursor:pointer;"><div style="width:44px;height:44px;border-radius:10px;background:#003087;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;color:#fff;font-weight:900;">P</div><div style="flex:1;"><div style="font-weight:800;font-size:.88rem;color:#fff;">Square</div><div style="font-size:.76rem;color:#FFD700;">'+CONTACT+'</div><div style="font-size:.67rem;color:var(--muted);">Tap to copy · Send $20 · Include your name in note</div></div><div style="color:#FFD700;font-size:1.1rem;">&#128203;</div></div>';
     }
   }
 }
@@ -1610,7 +1662,7 @@ function confirmEntry() {
       '<div><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">SET B</div><div style="display:flex;gap:4px;flex-wrap:wrap;">'+regPickedB.map(function(n){return '<div class="p-ball p-ball-b" style="width:32px;height:32px;font-size:.72rem;">'+n+'</div>';}).join('')+'</div></div>'+
       '<div style="margin-top:11px;padding:9px;background:rgba(255,215,0,.06);border-radius:8px;font-size:.73rem;color:rgba(255,255,255,.6);">'+
         (player.isFree||player.isMerch ? '<div style="color:#00E676;font-weight:800;margin-bottom:4px;">✅ Free/Merch Entry — No payment needed!</div>' :
-        '<div style="color:var(--gold);font-weight:800;margin-bottom:6px;">📧 Save this as your receipt!</div><div style="margin-bottom:4px;">Entry ID: <strong style="color:#fff;font-family:monospace;">#'+player.id+'</strong></div><div style="margin-bottom:4px;">Send payment to: <strong style="color:#fff;">Square, PayPal, Venmo or Cash App</strong></div><div>Screenshot this page as your payment record. Host will confirm within 24hrs.</div>')+
+        '<div style="color:var(--gold);font-weight:800;margin-bottom:6px;">📧 Save this as your receipt!</div><div style="margin-bottom:4px;">Entry ID: <strong style="color:#fff;font-family:monospace;">#'+player.id+'</strong></div><div style="margin-bottom:4px;">Send payment to: <strong style="color:#fff;">Square</strong> (accepts cards, Apple Pay, Google Pay, Cash App)</div><div>Screenshot this page as your payment record. Host will confirm within 24hrs.</div>')+
         '</div>';
   }
   showRegStep(4); showToast('You are in the Den!');
