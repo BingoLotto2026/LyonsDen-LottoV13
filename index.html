@@ -618,7 +618,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
           <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:7px;font-weight:800;">📲 Know someone who wants in? Share the game!</div>
           <div style="display:flex;gap:7px;">
             <button onclick="shareAfterReg()" style="flex:1;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;">📤 Share the Game</button>
-            <button onclick="copyText('lyonsdenbingolotto.netlify.app','Link copied!')" style="flex:1;padding:9px;border-radius:9px;border:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:800;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy Link</button>
+            <button onclick="copyText('bingolotto2026.github.io/LyonsDen-LottoV13','Link copied!')" style="flex:1;padding:9px;border-radius:9px;border:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:800;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy Link</button>
           </div>
         </div>
         <button class="btn btn-gold" onclick="showPage('home')" style="width:100%;">🏠 Back to Home</button>
@@ -639,7 +639,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(139,0,0,.05));border:2px solid rgba(255,215,0,.3);border-radius:16px;padding:16px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-family:Bebas Neue,cursive;font-size:1.1rem;letter-spacing:2px;color:var(--gold);">📸 Quick Rules — Save This!</div>
-        <button onclick="copyText('lyonsdenbingolotto.netlify.app','Game link copied!')" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);border-radius:8px;padding:4px 10px;color:var(--gold);font-size:.65rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy Link</button>
+        <button onclick="copyText('bingolotto2026.github.io/LyonsDen-LottoV13','Game link copied!')" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);border-radius:8px;padding:4px 10px;color:var(--gold);font-size:.65rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy Link</button>
       </div>
       <div style="display:grid;gap:8px;">
         <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
@@ -664,7 +664,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
         </div>
         <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
           <span style="font-size:1.1rem;flex-shrink:0;">📲</span>
-          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Follow the Action</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">Check the Den Board live at lyonsdenbingolotto.netlify.app · Follow @iamprettylyon for updates</div></div>
+          <div><div style="font-size:.76rem;font-weight:900;color:#fff;margin-bottom:2px;">Follow the Action</div><div style="font-size:.71rem;color:rgba(255,255,255,.6);">Check the Den Board live at bingolotto2026.github.io/LyonsDen-LottoV13 · Follow @iamprettylyon for updates</div></div>
         </div>
       </div>
     </div>
@@ -2181,12 +2181,12 @@ function shareDenBoard() {
     drawInfo,
     playerCount + " players in the Den!",
     "Check the live leaderboard & play next month:",
-    "lyonsdenbingolotto.netlify.app",
+    "bingolotto2026.github.io/LyonsDen-LottoV13",
     "#LyonsDen #PrettyLyon #BingoLotto"
   ];
   var text = lines.join("\n");
   if (navigator.share) {
-    navigator.share({ title: "Bingo Lotto in the Lyon\u2019s Den", text: text, url: "https://lyonsdenbingolotto.netlify.app" })
+    navigator.share({ title: "Bingo Lotto in the Lyon\u2019s Den", text: text, url: "https://bingolotto2026.github.io/LyonsDen-LottoV13" })
       .catch(function() { copyText(text, "Share text copied - paste to your story!"); });
   } else {
     copyText(text, "Share text copied - paste to your story! \uD83D\uDCF2");
@@ -2201,7 +2201,7 @@ function copyWelcomeMsg() {
   var lines = confirmed.map(function(p) {
     var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
     var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
-    return "Hi " + p.name + "! Welcome to the Lyon\u2019s Den \uD83E\uDD81 Your sets are locked in: Set A [" + p.setA.join(", ") + "] Set B [" + p.setB.join(", ") + "]. Check the live board at lyonsdenbingolotto.netlify.app. Good luck! \uD83D\uDC51";
+    return "Hi " + p.name + "! Welcome to the Lyon\u2019s Den \uD83E\uDD81 Your sets are locked in: Set A [" + p.setA.join(", ") + "] Set B [" + p.setB.join(", ") + "]. Check the live board at bingolotto2026.github.io/LyonsDen-LottoV13. Good luck! \uD83D\uDC51";
   });
   copyText(lines.join("\n---\n"), confirmed.length + " welcome messages copied!");
 }
@@ -2349,13 +2349,13 @@ function initFirebase() {
 function shareAfterReg() {
   var text = "I just joined Bingo Lotto in the Lyon\u2019s Den! \uD83E\uDD81\uD83D\uDC51\n" +
     "Pick your numbers and play for the jackpot!\n" +
-    "Sign up here: lyonsdenbingolotto.netlify.app\n" +
+    "Sign up here: bingolotto2026.github.io/LyonsDen-LottoV13\n" +
     "#LyonsDen #PrettyLyon #BingoLotto";
   if (navigator.share) {
     navigator.share({
       title: "Bingo Lotto in the Lyon\u2019s Den",
       text: text,
-      url: "https://lyonsdenbingolotto.netlify.app"
+      url: "https://bingolotto2026.github.io/LyonsDen-LottoV13"
     }).catch(function() { copyText(text, "Share text copied!"); });
   } else {
     copyText(text, "Share text copied \u2014 paste to your story! \uD83D\uDCF2");
@@ -2418,8 +2418,8 @@ function sendPushToAll(title, body) {
   try {
     var n = new Notification(title, {
       body: body,
-      icon: 'https://lyonsdenbingolotto.netlify.app/favicon.ico',
-      badge: 'https://lyonsdenbingolotto.netlify.app/favicon.ico',
+      icon: 'https://bingolotto2026.github.io/LyonsDen-LottoV13/favicon.ico',
+      badge: 'https://bingolotto2026.github.io/LyonsDen-LottoV13/favicon.ico',
       tag: 'lyonsden-' + Date.now(),
       requireInteraction: false
     });
