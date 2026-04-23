@@ -1026,11 +1026,13 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
       <button class="btn btn-gold" id="host-run-draw" onclick="runDraw()" style="width:100%;" disabled>🎱 Run This Draw!</button>
       <button class="btn" onclick="triggerReveal()" style="background:linear-gradient(135deg,#6A0DAD,#3D0070);color:#fff;font-weight:900;margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">🎰 Drop the Numbers — Trigger Reveal</button>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);">
-        <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:8px;">📲 Send Push Notifications</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <button onclick="hostNotifyRegOpen()" style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(0,230,118,.12);color:#00E676;font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(0,230,118,.25);">🟢 Notify Players — Registration Open</button>
-          <button onclick="hostNotifyDrawOpen()" style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(255,215,0,.1);color:var(--gold);font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(255,215,0,.25);">🎰 Notify Players — Numbers Dropping Now!</button>
-          <button onclick="hostNotifyResults()" style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(200,16,46,.12);color:#FF6B6B;font-weight:900;font-size:.76rem;cursor:pointer;font-family:Montserrat,sans-serif;border:1px solid rgba(200,16,46,.25);">🏆 Notify Players — Results Are In!</button>
+        <div style="font-family:Bebas Neue,cursive;font-size:.9rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:8px;">📲 Notify Your Players</div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:11px;font-size:.74rem;color:rgba(255,255,255,.65);line-height:1.8;">
+          <div style="color:#fff;font-weight:800;margin-bottom:6px;">Share updates via Instagram DM or email:</div>
+          <div>🟢 Registration open → DM players or post to story</div>
+          <div>🎰 Numbers dropping → Post draw live on Instagram</div>
+          <div>🏆 Results in → DM winners + post Den Board screenshot</div>
+          <button onclick="copyNotifyEmails()" style="width:100%;margin-top:10px;padding:9px;border-radius:9px;border:1px solid rgba(255,215,0,.25);background:rgba(255,215,0,.08);color:var(--gold);font-weight:900;font-size:.75rem;cursor:pointer;font-family:Montserrat,sans-serif;">📋 Copy All Player Emails</button>
         </div>
       </div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);">
@@ -1200,6 +1202,12 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
 
 var HOST_PW   = 'ZayKing7Vy#171821';
 var SQUARE    = 'https://square.link/u/OEz4wZ72';
+var CONTACT   
+// ── Global scope — all functions accessible from onclick handlers ──
+// LYONS DEN LOTTO v13 — Plain global JS, no IIFE, no strict mode
+
+var HOST_PW   = 'ZayKing7Vy#171821';
+var SQUARE    = 'https://square.link/u/OEz4wZ72';
 var CONTACT   = 'Bingolotto.game@gmail.com';
 var AVATARS   = ['🦁','🎤','💅','👑','🔥','💎','🎵','🎱','🌟','💋','🐯','🎯','🏆','💜','🎀','🎸','🦋','🌙','⚡','🍀','🌹','🎭','👸','🎺'];
 
@@ -1362,16 +1370,8 @@ function spotsLeft() {
 var maxP=S.game.maxPlayers||0; if(!maxP) return null; return Math.max(0,maxP-S.players.length);
 }
 function isRegOpen() {
-  if (!S.game.registrationOpen) return false;
-  if (S.game.manualOverride) return S.game.registrationOpen;
-  if (S.game.firstDrawDate) {
-    var cutoff = new Date(S.game.firstDrawDate).getTime() - 86400000;
-    if (Date.now() >= cutoff) return false;
-  }
-  if (S.game.registrationDeadline) {
-    if (Date.now() >= new Date(S.game.registrationDeadline).getTime()) return false;
-  }
-  return true;
+  // Host toggle is the single source of truth - always respect it
+  return S.game.registrationOpen === true;
 }
 
 function getTimeLeft(iso) {
@@ -1450,12 +1450,10 @@ function startCountdown(target) {
 }
 
 function handleJoinClick() {
-  // Always use latest state from Firebase before deciding
-  if (isSoldOut()) { showToast('All spots are filled! Sign up to be notified about next month.', true); return; }
+  if (isSoldOut()) { showToast('All spots are filled! Sign up to be notified.', true); return; }
   if (!S.game.registrationOpen) {
-    if (S.game.month || S.game.firstDrawDate) {
-      showToast('Registration is closed. Sign up to be notified!', true); return;
-    }
+    showToast('Registration is currently closed. Sign up below to be notified!', true);
+    return;
   }
   showPage('register');
 }
@@ -2388,8 +2386,6 @@ function startFbPolling() {
         if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
         if (remote.pastWinners) S.pastWinners = remote.pastWinners;
         localSave();
-        // Check for host-triggered notifications
-        checkForPushFromHost();
         // Re-render active page
         var activePage = document.querySelector('.page.active');
         if (activePage) {
@@ -2438,108 +2434,6 @@ function shareAfterReg() {
 // ──────────────────────────────────────────────
 // PUSH NOTIFICATIONS (Browser Native)
 // ──────────────────────────────────────────────
-function requestNotifyPermission() {
-  if (!('Notification' in window)) {
-    showToast('Your browser does not support notifications', true);
-    return;
-  }
-  if (Notification.permission === 'granted') {
-    showToast('Notifications already enabled! ✅');
-    updateNotifyBtn();
-    return;
-  }
-  if (Notification.permission === 'denied') {
-    showToast('Notifications blocked - please enable in browser settings', true);
-    return;
-  }
-  Notification.requestPermission().then(function(perm) {
-    if (perm === 'granted') {
-      showToast('Notifications enabled! You will be notified of draws 🦁');
-      updateNotifyBtn();
-      // Save preference
-      try { localStorage.setItem('notifyOptIn','1'); } catch(e) {}
-    } else {
-      showToast('Notifications not enabled - you can change this in settings', true);
-    }
-  });
-}
-
-function updateNotifyBtn() {
-  var btn = el('notify-permission-btn');
-  if (!btn) return;
-  if (!('Notification' in window)) {
-    btn.textContent = 'Notifications not supported';
-    btn.style.opacity = '0.4';
-    return;
-  }
-  if (Notification.permission === 'granted') {
-    btn.textContent = '🔔 Notifications ON ✅';
-    btn.style.background = 'rgba(0,230,118,.15)';
-    btn.style.borderColor = 'rgba(0,230,118,.4)';
-    btn.style.color = '#00E676';
-  } else if (Notification.permission === 'denied') {
-    btn.textContent = '🔕 Notifications Blocked';
-    btn.style.opacity = '0.5';
-  } else {
-    btn.textContent = '🔔 Tap to Enable Notifications';
-  }
-}
-
-function sendPushToAll(title, body) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  try {
-    var n = new Notification(title, {
-      body: body,
-      icon: 'https://bingolotto2026.github.io/LyonsDen-LottoV13/favicon.ico',
-      badge: 'https://bingolotto2026.github.io/LyonsDen-LottoV13/favicon.ico',
-      tag: 'lyonsden-' + Date.now(),
-      requireInteraction: false
-    });
-    n.onclick = function() { window.focus(); n.close(); };
-    setTimeout(function() { n.close(); }, 8000);
-  } catch(e) { console.warn('Push notification failed:', e); }
-}
-
-// Host triggers these from Control Room
-function hostNotifyDrawOpen() {
-  var msg = S.game.month ? S.game.month + ' draw is happening NOW!' : 'The draw is happening NOW!';
-  sendPushToAll('🦁 Lyon\'s Den — Numbers Dropping!', msg + ' Open the app to watch live!');
-  showToast('Notification sent to all opted-in players!');
-  // Also save to Firebase so other devices pick it up
-  if (!S.game.lastNotif) S.game.lastNotif = {};
-  S.game.lastNotif = { type:'draw', msg:msg, time:Date.now() };
-  save();
-}
-
-function hostNotifyRegOpen() {
-  var msg = S.game.month ? S.game.month + ' registration is now OPEN!' : 'Registration is now OPEN!';
-  sendPushToAll('🦁 Lyon\'s Den — Join Now!', msg + ' Grab your spot before it fills up!');
-  showToast('Notification sent!');
-  if (!S.game.lastNotif) S.game.lastNotif = {};
-  S.game.lastNotif = { type:'reg', msg:msg, time:Date.now() };
-  save();
-}
-
-function hostNotifyResults() {
-  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
-  var nums = draw ? draw.numbers.join(', ') : '???';
-  sendPushToAll('🦁 Lyon\'s Den — Results Are In!', 'Winning numbers: ' + nums + '. Check the Den Board now!');
-  showToast('Results notification sent!');
-}
-
-// Check for new notifications from Firebase (fired on poll)
-var lastNotifSeen = 0;
-function checkForPushFromHost() {
-  if (!S.game || !S.game.lastNotif) return;
-  var notif = S.game.lastNotif;
-  if (!notif.time || notif.time <= lastNotifSeen) return;
-  lastNotifSeen = notif.time;
-  // Don't notify yourself if you're the host
-  if (hostLoggedIn) return;
-  sendPushToAll('🦁 Lyon\'s Den', notif.msg || 'Check the app for updates!');
-}
-
-
 function removeDraw(idx) {
   if (!confirm('Remove draw #' + (idx+1) + '? This will update all match counts.')) return;
   S.draws.splice(idx, 1);
@@ -2555,9 +2449,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initMusicBar();
   renderGameBanner();
   setTimeout(initA2HS, 1200);
-  setTimeout(updateNotifyBtn, 800);
   initFirebase();
 });
-</script>
 </body>
 </html>
