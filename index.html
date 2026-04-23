@@ -379,12 +379,13 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
   <!-- Notify Me — BELOW the banner -->
   <div style="padding:10px 16px 12px;">
     <div style="padding:0 16px 10px;">
-    <div style="background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.15);border-radius:12px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <div>
-        <div style="font-size:.76rem;font-weight:800;color:var(--gold);">🔔 Game Notifications</div>
-        <div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-top:2px;">Get buzzed when draws happen & registration opens</div>
+    <div style="background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.15);border-radius:12px;padding:11px 13px;">
+      <div style="font-size:.76rem;font-weight:800;color:var(--gold);margin-bottom:6px;">📲 Never Miss a Draw!</div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.5);margin-bottom:8px;">Follow Pretty Lyon for live draw announcements and game updates</div>
+      <div style="display:flex;gap:7px;">
+        <a href="https://instagram.com/iamprettylyon" target="_blank" style="flex:1;padding:8px;border-radius:9px;background:linear-gradient(135deg,#833AB4,#E1306C);color:#fff;font-size:.7rem;font-weight:800;text-align:center;text-decoration:none;font-family:Montserrat,sans-serif;">📸 @iamprettylyon</a>
+        <button onclick="copyText('https://bingolotto2026.github.io/LyonsDen-LottoV13','Game link copied!')" style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.08);color:var(--gold);font-size:.7rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">🔗 Copy Game Link</button>
       </div>
-      <button id="notify-permission-btn" onclick="requestNotifyPermission()" style="flex-shrink:0;padding:7px 12px;border-radius:9px;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.08);color:var(--gold);font-size:.68rem;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">🔔 Enable</button>
     </div>
   </div>
   <div class="notify-box">
@@ -1018,6 +1019,10 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
       </div>
       <div class="picked-row" id="host-draw-picked"></div>
       <div class="num-grid" id="host-draw-grid"></div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);">
+        <div style="font-family:Bebas Neue,cursive;font-size:.85rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">📅 Draws This Game</div>
+        <div id="draw-history-list" style="font-size:.75rem;"></div>
+      </div>
       <button class="btn btn-gold" id="host-run-draw" onclick="runDraw()" style="width:100%;" disabled>🎱 Run This Draw!</button>
       <button class="btn" onclick="triggerReveal()" style="background:linear-gradient(135deg,#6A0DAD,#3D0070);color:#fff;font-weight:900;margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">🎰 Drop the Numbers — Trigger Reveal</button>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);">
@@ -1185,11 +1190,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
   <div class="bnav on" id="bn-home" onclick="showPage('home')"><span class="bnav-ic">🏠</span>Home</div>
   <div class="bnav" id="bn-register" onclick="showPage('register')"><span class="bnav-ic">🎟️</span>Join</div>
   <div class="bnav" id="bn-results" onclick="showPage('results')"><span class="bnav-ic">🏆</span>Results</div>
-  <div class="bnav" id="bn-payment" onclick="showPage('payment')"><span class="bnav-ic">💳</span>Pay</div>
-  <div class="bnav" id="bn-host-login" onclick="showPage('host-login')"><span class="bnav-ic">🔐</span>Host</div>
-</nav>
-<div class="toast" id="toast"></div>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false">
+  <div class="bnav" id="bn-payment" onclick="showPage('payment')"><spa
 // ── Global scope — all functions accessible from onclick handlers ──
 // LYONS DEN LOTTO v13 — Plain global JS, no IIFE, no strict mode
 
@@ -1284,9 +1285,30 @@ function matchCount(nums, drawNums) {
   return count;
 }
 
+function getAllDrawnNumbers() {
+  if (!S.draws || !S.draws.length) return [];
+  var all = [];
+  S.draws.forEach(function(d) {
+    if (d.numbers) {
+      d.numbers.forEach(function(n) {
+        if (all.indexOf(n) < 0) all.push(n);
+      });
+    }
+  });
+  return all;
+}
+
+function playerWins(player) {
+  var allNums = getAllDrawnNumbers();
+  if (!allNums.length) return false;
+  return matchCount(player.setA, allNums) >= 6 || matchCount(player.setB, allNums) >= 6;
+}
+
 function getWinners(draw) {
+  var allNums = getAllDrawnNumbers();
+  if (!allNums.length) return [];
   return S.players.filter(function(p) {
-    return matchCount(p.setA, draw.numbers) === 6 || matchCount(p.setB, draw.numbers) === 6;
+    return (p.confirmed || p.paid) && playerWins(p);
   });
 }
 
@@ -1639,12 +1661,6 @@ function confirmEntry() {
   if(regIsMerch&&pendingMerchIdx>=0&&S.game.merchCodes[pendingMerchIdx]){
     S.game.merchCodes[pendingMerchIdx].used=true;
     S.game.merchCodes[pendingMerchIdx].usedBy=name||email;
-    // Add BONUS 2nd entry for merch players - they get 2 plays!
-    var bonusPlayer = {id:Date.now()+1,name:name+' (Bonus Entry)',email:email,
-      avatar:photoData||selAvatar,isPhoto:!!photoData,isFree:false,isMerch:true,
-      setA:regPickedB.slice(),setB:regPickedA.slice(),
-      confirmed:false,paid:true,date:new Date().toLocaleDateString(),isBonusEntry:true};
-    S.players.push(bonusPlayer);
     pendingMerchIdx=-1;
   }
   // Auto-add email to notify list
@@ -1661,7 +1677,7 @@ function confirmEntry() {
       '<div style="margin-bottom:7px;"><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">SET A</div><div style="display:flex;gap:4px;flex-wrap:wrap;">'+regPickedA.map(function(n){return '<div class="p-ball p-ball-a" style="width:32px;height:32px;font-size:.72rem;">'+n+'</div>';}).join('')+'</div></div>'+
       '<div><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">SET B</div><div style="display:flex;gap:4px;flex-wrap:wrap;">'+regPickedB.map(function(n){return '<div class="p-ball p-ball-b" style="width:32px;height:32px;font-size:.72rem;">'+n+'</div>';}).join('')+'</div></div>'+
       '<div style="margin-top:11px;padding:9px;background:rgba(255,215,0,.06);border-radius:8px;font-size:.73rem;color:rgba(255,255,255,.6);">'+
-        (player.isFree||player.isMerch ? '<div style="color:#00E676;font-weight:800;margin-bottom:4px;">✅ Free/Merch Entry — No payment needed!</div>' :
+        (player.isMerch ? '<div style="color:#FF8C00;font-weight:800;margin-bottom:6px;">🛍️ Merch Entry Registered!</div><div style="color:rgba(255,255,255,.7);margin-bottom:4px;">You have a 2nd free game included! Use your second code to register again and pick a different set of numbers.</div>' : player.isFree ? '<div style="color:#00E676;font-weight:800;margin-bottom:4px;">✅ Free Entry — No payment needed!</div>' :
         '<div style="color:var(--gold);font-weight:800;margin-bottom:6px;">📧 Save this as your receipt!</div><div style="margin-bottom:4px;">Entry ID: <strong style="color:#fff;font-family:monospace;">#'+player.id+'</strong></div><div style="margin-bottom:4px;">Send payment to: <strong style="color:#fff;">Square</strong> (accepts cards, Apple Pay, Google Pay, Cash App)</div><div>Screenshot this page as your payment record. Host will confirm within 24hrs.</div>')+
         '</div>';
   }
@@ -1694,6 +1710,25 @@ function renderHost() {
   sv('host-player-count',S.players.length);
   var hd=el('host-draw-date'); if(hd && !hd.value) hd.value=new Date().toISOString().split('T')[0];
   loadGameSettings(); renderHostDrawGrid(); renderHostPlayers(); renderMerchCodeList();
+  // Draw history
+  var dhList = el('draw-history-list');
+  if (dhList) {
+    if (!S.draws.length) {
+      dhList.innerHTML = '<div style="color:rgba(255,255,255,.35);font-style:italic;">No draws entered yet.</div>';
+    } else {
+      var allNums = getAllDrawnNumbers();
+      dhList.innerHTML = S.draws.map(function(d, i) {
+        return '<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">' +
+          '<span style="font-family:Bebas Neue,cursive;color:var(--gold);font-size:.85rem;min-width:24px;">#'+(i+1)+'</span>' +
+          '<span style="color:rgba(255,255,255,.5);font-size:.65rem;min-width:55px;">'+(d.date||'No date')+'</span>' +
+          '<div style="display:flex;gap:3px;flex-wrap:wrap;flex:1;">' +
+          d.numbers.map(function(n){ return '<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;">'+n+'</div>'; }).join('') +
+          '</div>' +
+          '<button onclick="removeDraw('+i+')" style="background:rgba(200,16,46,.2);border:none;border-radius:6px;color:#FF6B6B;font-size:.65rem;cursor:pointer;padding:3px 7px;flex-shrink:0;">✕</button>' +
+        '</div>';
+      }).join('') + '<div style="font-size:.68rem;color:rgba(255,215,0,.6);margin-top:4px;">' + allNums.length + ' unique numbers drawn across all draws</div>';
+    }
+  }
 }
 
 function loadGameSettings() {
@@ -1760,12 +1795,34 @@ function hostToggleDraw(n){var idx=hostDrawPicked.indexOf(n);if(idx>-1)hostDrawP
 function clearHostDraw(){hostDrawPicked=[];renderHostDrawGrid();}
 
 function runDraw() {
-  var dateEl=el('host-draw-date');
-  var draw={id:Date.now(),date:dateEl?dateEl.value:'',numbers:hostDrawPicked.slice()};
-  S.draws.push(draw);S.currentDraw=S.draws.length-1;hostDrawPicked=[];save();renderHostDrawGrid();renderHost();
-  var winners=getWinners(draw);
-  showToast('Draw saved! '+(winners.length?winners.length+' WINNER(S)!':'No winners yet.'));
-  if(winners.length){setTimeout(function(){showWinnerScreen(winners[0].name,draw);},700);}
+  var dateEl = el('host-draw-date');
+  if (!hostDrawPicked.length) { showToast('Pick the winning numbers first!', true); return; }
+  var draw = { id:Date.now(), date:dateEl?dateEl.value:'', numbers:hostDrawPicked.slice() };
+  S.draws.push(draw);
+  S.currentDraw = S.draws.length - 1;
+  hostDrawPicked = [];
+  save();
+  renderHostDrawGrid();
+  renderHost();
+  // Check winners using ALL accumulated numbers
+  var allNums = getAllDrawnNumbers();
+  var winners = S.players.filter(function(p) {
+    return (p.confirmed || p.paid) && playerWins(p);
+  });
+  var drawNum = S.draws.length;
+  var msg = 'Draw #' + drawNum + ' saved! (' + draw.numbers.join(', ') + ')';
+  if (winners.length) {
+    msg += ' — ' + winners.length + ' WINNER(S)!';
+    showToast(msg);
+    setTimeout(function() { showWinnerScreen(winners[0].name, draw); }, 700);
+  } else {
+    var totalMatched = Math.max.apply(null, S.players.filter(function(p){
+      return p.confirmed||p.paid;
+    }).map(function(p){
+      return Math.max(matchCount(p.setA,allNums), matchCount(p.setB,allNums));
+    }).concat([0]));
+    showToast(msg + ' Best match so far: ' + totalMatched + '/6');
+  }
 }
 
 function renderHostPlayers() {
@@ -1780,7 +1837,7 @@ function renderHostPlayers() {
   var pending = S.players.filter(function(p){return !p.confirmed&&p.paid&&!p.isFree&&!p.isMerch;});
 
   function playerCard(p,idx){
-    var mA=draw?matchCount(p.setA,draw.numbers):0,mB=draw?matchCount(p.setB,draw.numbers):0,won=mA===6||mB===6;
+    var allNums=getAllDrawnNumbers();var mA=allNums.length?matchCount(p.setA,allNums):0,mB=allNums.length?matchCount(p.setB,allNums):0,won=playerWins(p);
     var avHTML=p.isPhoto?'<img src="'+p.avatar+'">':p.avatar;
     var typeTag=p.isMerch?'<span class="badge b-orange">🛍️ MERCH</span>':p.isFree?'<span class="badge b-purple">🆓 FREE</span>':'<span class="badge b-green">💰 PAID</span>';
     var confTag=p.confirmed?'<span class="badge b-gold">✅ Confirmed</span>':'<span class="badge b-muted">⏳ Pending</span>';
@@ -1895,7 +1952,7 @@ function buildDenBoard(scored, draw, animate) {
 
     function ballsHTML(set, matchedNums) {
       return set.map(function(n) {
-        var hit = draw && draw.numbers.indexOf(n) > -1;
+        var hit = allNums.indexOf(n) > -1;
         var cls = 'p-ball' + (hit ? (animate ? ' p-hit p-hit-new' : ' p-hit') : '');
         return '<div class="' + cls + '">' + n + '</div>';
       }).join('');
@@ -1948,16 +2005,26 @@ function renderHallOfFame() {
 function renderResults() {
   var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
   var lbl = el('results-draw-label'), bls = el('results-draw-balls'), lr = el('last-refresh');
-  if (lbl) lbl.textContent = draw ? ('Draw: ' + (draw.date || 'No date set')) : 'No active draw yet';
-  if (bls) bls.innerHTML = draw ? draw.numbers.map(function(n) {
-    return '<div class="d-ball">' + n + '</div>';
-  }).join('') : '';
+  var allNums = getAllDrawnNumbers();
+  if (lbl) {
+    if (!S.draws.length) { lbl.textContent = 'No draws yet'; }
+    else { lbl.textContent = S.draws.length + ' draw' + (S.draws.length>1?'s':'') + ' completed — ' + allNums.length + ' unique numbers drawn'; }
+  }
+  if (bls) {
+    // Show each draw separately with its date
+    bls.innerHTML = S.draws.map(function(d, i) {
+      return '<div style="margin-bottom:6px;"><div style="font-size:.58rem;color:rgba(255,255,255,.4);margin-bottom:3px;text-align:center;">Draw #'+(i+1)+' '+(d.date||'')+'</div><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap;">' +
+        d.numbers.map(function(n){ return '<div class="d-ball" style="width:26px;height:26px;font-size:.65rem;">'+n+'</div>'; }).join('') +
+        '</div></div>';
+    }).join('');
+  }
   if (lr) lr.textContent = 'Updated: ' + new Date().toLocaleTimeString();
 
+  var allNums = getAllDrawnNumbers();
   var scored = S.players.filter(function(p) { return p.confirmed || p.paid; }).map(function(p) {
-    var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
-    var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
-    return { id: p.id, name: p.name, avatar: p.avatar, isPhoto: p.isPhoto, isFree: p.isFree, isMerch: p.isMerch, setA: p.setA, setB: p.setB, mA: mA, mB: mB, best: Math.max(mA, mB), won: mA === 6 || mB === 6 };
+    var mA = allNums.length ? matchCount(p.setA, allNums) : 0;
+    var mB = allNums.length ? matchCount(p.setB, allNums) : 0;
+    return { id: p.id, name: p.name, avatar: p.avatar, isPhoto: p.isPhoto, isFree: p.isFree, isMerch: p.isMerch, setA: p.setA, setB: p.setB, mA: mA, mB: mB, best: Math.max(mA, mB), won: mA >= 6 || mB >= 6 };
   }).sort(function(a, b) { return b.best - a.best || a.name.localeCompare(b.name); });
 
   var winners = scored.filter(function(p) { return p.won; });
@@ -1986,12 +2053,13 @@ function lookupPlayer() {
   var players = S.players.filter(function(p) { return (p.confirmed || p.paid) && p.name.toLowerCase().indexOf(query) > -1; });
   if (!players.length) { res.innerHTML = '<div style="font-size:.78rem;color:rgba(255,255,255,.4);padding:8px 0;">No player found with that name.</div>'; return; }
   var p = players[0];
-  var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
-  var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
+  var allNums = getAllDrawnNumbers();
+  var mA = allNums.length ? matchCount(p.setA, allNums) : 0;
+  var mB = allNums.length ? matchCount(p.setB, allNums) : 0;
   var best = Math.max(mA, mB);
   function cardBalls(set) {
     return set.map(function(n) {
-      var hit = draw && draw.numbers.indexOf(n) > -1;
+      var hit = allNums.indexOf(n) > -1;
       return '<div class="p-ball' + (hit ? ' p-hit' : '') + '" style="width:34px;height:34px;font-size:.82rem;">' + n + '</div>';
     }).join('');
   }
@@ -2466,6 +2534,17 @@ function checkForPushFromHost() {
   if (hostLoggedIn) return;
   sendPushToAll('🦁 Lyon\'s Den', notif.msg || 'Check the app for updates!');
 }
+
+
+function removeDraw(idx) {
+  if (!confirm('Remove draw #' + (idx+1) + '? This will update all match counts.')) return;
+  S.draws.splice(idx, 1);
+  if (S.currentDraw >= S.draws.length) S.currentDraw = S.draws.length - 1;
+  save();
+  renderHost();
+  showToast('Draw removed.');
+}
+
 
 document.addEventListener('DOMContentLoaded', function() {
   var hdDate=el('host-draw-date'); if(hdDate && !hdDate.value) hdDate.value=new Date().toISOString().split('T')[0];
