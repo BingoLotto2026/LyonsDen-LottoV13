@@ -300,6 +300,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
   <a href="https://music.apple.com/us/artist/pretty-lyon/909446671" target="_blank" style="padding:5px 10px;border-radius:20px;background:linear-gradient(135deg,#fc3c44,#f94c57);color:#fff;font-size:.7rem;font-weight:800;text-decoration:none;white-space:nowrap;">Apple</a>
 </div>
 
+<div id="toast" class="toast"></div>
 <div id="app">
 
 <!-- HOME -->
@@ -1006,6 +1007,7 @@ linear-gradient(135deg,#1a0010 0%,#4a0010 30%,#8B0000 55%,#2a0800 100%);}
     <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:9px;">👥 Players (<span id="host-player-count">0</span>)</div>
     <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:11px;">
       <button class="btn btn-red btn-sm" onclick="exportPlayers()">📤 Export Player List (CSV)</button>
+      <button class="btn btn-sm" onclick="cleanupGhostPlayers()" style="background:rgba(255,140,0,.15);border:1px solid rgba(255,140,0,.3);color:#FF8C00;font-family:Montserrat,sans-serif;margin-top:6px;width:100%;">🧹 Remove Ghost/Duplicate Players</button>
       <button class="btn btn-sm" onclick="copyWelcomeMsg()" style="background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(200,16,46,.1));color:var(--gold);border:1px solid rgba(255,215,0,.25);font-family:Montserrat,sans-serif;">📋 Copy Player Welcome Message</button>
       <button class="btn btn-sm" onclick="startNewGame()" style="background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;font-family:Montserrat,sans-serif;font-weight:800;font-size:.78rem;padding:8px 14px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">🆕 Start New Month's Game</button>
       <button class="btn btn-dark btn-sm" onclick="resetAll()">🗑️ Reset All Data</button>
@@ -1703,11 +1705,16 @@ function doLogin() {
 function hostLogout(){hostLoggedIn=false;try{sessionStorage.removeItem('hostLoggedIn');localStorage.removeItem('hostLoggedIn');}catch(e){}showPage('home');}
 
 function renderHost() {
-  var paid=S.players.filter(function(p){return p.paid;}).length;
-  var col=paid*20,adm=Math.round(col*.1),pot=col-adm;
+  // Count only confirmed paid players (not free/merch) for revenue
+  var confirmedPaid = S.players.filter(function(p){return p.paid && p.confirmed && !p.isFree && !p.isMerch;}).length;
+  var confirmedTotal = S.players.filter(function(p){return p.confirmed || p.paid;}).length;
+  var paid = confirmedPaid;
+  var col = paid*20, adm = Math.round(col*.1), pot = col-adm;
   function sv(id,v){var e=el(id);if(e)e.textContent=v;}
   var maxP=S.game.maxPlayers||0;
-  sv('stat-players',maxP>0?(S.players.length+'/'+maxP):S.players.length);sv('stat-revenue','$'+col);sv('stat-draws',S.draws.length);
+  sv('stat-players',maxP>0?(S.players.length+'/'+maxP):S.players.length);
+  sv('stat-revenue','$'+col);
+  sv('stat-draws',S.draws.length);
   sv('pot-collected','$'+col);sv('pot-admin','$'+adm);sv('pot-prize','$'+pot);sv('pot-paid-count',paid);
   sv('host-player-count',S.players.length);
   var hd=el('host-draw-date'); if(hd && !hd.value) hd.value=new Date().toISOString().split('T')[0];
@@ -1805,10 +1812,10 @@ function runDraw() {
   renderHostDrawGrid();
   renderHost();
   renderResults(); // Update leaderboard immediately
-  // Check winners using ALL accumulated numbers
-  var allNums = getAllDrawnNumbers();
+  // Check winners using ALL accumulated numbers (S.draws already updated above)
+  var allNums = getAllDrawnNumbers(); // Uses updated S.draws
   var winners = S.players.filter(function(p) {
-    return (p.confirmed || p.paid) && playerWins(p);
+    return (p.confirmed || p.paid) && (matchCount(p.setA, allNums) >= 6 || matchCount(p.setB, allNums) >= 6);
   });
   var drawNum = S.draws.length;
   var msg = 'Draw #' + drawNum + ' saved! (' + draw.numbers.join(', ') + ')';
@@ -1822,7 +1829,7 @@ function runDraw() {
     }).map(function(p){
       return Math.max(matchCount(p.setA,allNums), matchCount(p.setB,allNums));
     }).concat([0]));
-    showToast(msg + ' Best match so far: ' + totalMatched + '/6');
+    showToast(msg + ' | Best: ' + totalMatched + '/6. Add next draw to continue!');
   }
 }
 
@@ -1859,19 +1866,41 @@ function renderHostPlayers() {
       players.map(function(p,i){return playerCard(p,i);}).join('');
   }
 
+  // Catch players that don't fit any category (shouldn't happen but safety net)
+  var categorized = paid.concat(merch).concat(free).concat(pending);
+  var orphaned = S.players.filter(function(p) {
+    return categorized.indexOf(p) < 0;
+  });
+
   var pendingAlert = pending.length ?
-    '<div style="background:rgba(255,140,0,.12);border:1px solid rgba(255,140,0,.35);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.76rem;color:#FF8C00;font-weight:800;">⚠️ '+pending.length+' player'+(pending.length>1?'s':'')+' awaiting payment confirmation — tap ✅ to confirm</div>' : '';
+    '<div style="background:rgba(255,140,0,.12);border:1px solid rgba(255,140,0,.35);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.76rem;color:#FF8C00;font-weight:800;">⚠️ '+pending.length+' player'+(pending.length>1?'s':'')+' awaiting payment confirmation — tap 💰 to confirm</div>' : '';
 
   list.innerHTML = pendingAlert +
     section('⏳ AWAITING CONFIRMATION','#FF8C00', pending) +
     section('💰 PAID PLAYERS','#00E676', paid.filter(function(p){return p.confirmed;})) +
     section('🛍️ MERCH BONUS PLAYERS','#FF8C00', merch) +
-    section('🆓 FREE PLAYERS','#BBA8DD', free);
+    section('🆓 FREE PLAYERS','#BBA8DD', free) +
+    (orphaned.length ? section('⚠️ UNCATEGORIZED','#FF6B6B', orphaned) : '');
 
   if(!S.players.length) list.innerHTML='<div class="empty"><span class="empty-ic">👥</span><p>No players yet.</p></div>';
 }
 
-function togglePaid(id){var p=S.players.filter(function(x){return x.id===id;})[0];if(p){p.paid=!p.paid;save();renderHost();}}
+function togglePaid(id) {
+  var p = S.players.filter(function(x){return x.id===id;})[0];
+  if (!p) return;
+  // Toggle between paid+confirmed and paid-but-pending
+  // Never set paid=false as that makes player invisible
+  if (p.confirmed) {
+    p.confirmed = false; // Move back to pending
+    showToast('Player moved to Pending — awaiting payment confirmation');
+  } else {
+    p.paid = true;
+    p.confirmed = true; // Confirm payment received
+    showToast('Payment confirmed! ✅');
+  }
+  save();
+  renderHost();
+}
 function toggleConfirmed(id){var p=S.players.filter(function(x){return x.id===id;})[0];if(p){p.confirmed=!p.confirmed;save();renderHost();}}
 function removePlayer(id){if(!confirm('Remove this player?'))return;S.players=S.players.filter(function(x){return x.id!==id;});save();renderHost();}
 
@@ -2370,7 +2399,10 @@ function renderAll() {
   if (!active) return;
   var pg = active.id.replace('page-', '');
   if (pg === 'results') renderResults();
-  if (pg === 'host')    renderHost();
+  if (pg === 'host') {
+    loadGameSettings(); renderHostPlayers(); renderMerchCodeList(); renderNotifyList(); populateProofFields();
+    if (!hostDrawPicked.length) renderHostDrawGrid();
+  }
   if (pg === 'register') initRegister();
 }
 
@@ -2443,6 +2475,27 @@ function removeDraw(idx) {
   showToast('Draw removed.');
 }
 
+
+
+// ── Remove ghost players (no category) ──
+function cleanupGhostPlayers() {
+  var before = S.players.length;
+  // Remove players with no valid category
+  S.players = S.players.filter(function(p) {
+    return p.isFree || p.isMerch || p.paid || p.confirmed;
+  });
+  // Remove duplicates by id
+  var seen = {};
+  S.players = S.players.filter(function(p) {
+    if (seen[p.id]) return false;
+    seen[p.id] = true;
+    return true;
+  });
+  var removed = before - S.players.length;
+  save();
+  renderHost();
+  showToast(removed > 0 ? ('Removed ' + removed + ' ghost player(s)! ✅') : 'No ghost players found ✅');
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   var hdDate=el('host-draw-date'); if(hdDate && !hdDate.value) hdDate.value=new Date().toISOString().split('T')[0];
