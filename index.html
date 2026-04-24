@@ -1757,14 +1757,11 @@ var fl=parseInt(gv('host-free-limit')); S.game.freeLimit=(!isNaN(fl)&&fl>0)?fl:1
 function toggleRegistration() {
   S.game.registrationOpen = !S.game.registrationOpen;
   S.game.manualOverride = true;
-  save();
+  fbSave(); // Write to Firebase immediately
+  localSave();
+  renderAll(); // Render instantly from local state
   loadGameSettings();
-  renderGameBanner();
   showToast(S.game.registrationOpen ? 'Registration is now OPEN! 🟢' : 'Registration is now CLOSED! 🔴');
-  // Fire 3 rapid syncs so all devices update quickly
-  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 500);
-  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 1500);
-  setTimeout(function() { fbLoad(function() { renderGameBanner(); }); }, 3000);
 }
 
 function removeNotifyEmail(i){S.game.notifyEmails.splice(i,1);save();loadGameSettings();}
@@ -1803,9 +1800,11 @@ function runDraw() {
   S.draws.push(draw);
   S.currentDraw = S.draws.length - 1;
   hostDrawPicked = [];
-  save();
+  fbSave();
+  localSave();
   renderHostDrawGrid();
   renderHost();
+  renderResults(); // Update leaderboard immediately
   // Check winners using ALL accumulated numbers
   var allNums = getAllDrawnNumbers();
   var winners = S.players.filter(function(p) {
@@ -1933,6 +1932,7 @@ function startResultsTimer(){
 }
 
 function buildDenBoard(scored, draw, animate) {
+  var allNums = getAllDrawnNumbers();
   var lb = el('leaderboard'); if (!lb) return;
   if (!scored.length) {
     lb.innerHTML = '<div class="empty"><span class="empty-ic">🦁</span><p>No confirmed players yet.</p></div>';
@@ -1952,7 +1952,7 @@ function buildDenBoard(scored, draw, animate) {
     var hotBadge = isLeader && !p.won ? '<span class="hot-badge">🔥 HOT</span>' : '';
     var jackBadge = p.won ? '<span class="jackpot-badge">👑 JACKPOT</span>' : '';
 
-    function ballsHTML(set, matchedNums) {
+    function ballsHTML(set) {
       return set.map(function(n) {
         var hit = allNums.indexOf(n) > -1;
         var cls = 'p-ball' + (hit ? (animate ? ' p-hit p-hit-new' : ' p-hit') : '');
@@ -2278,22 +2278,22 @@ function copyWelcomeMsg() {
 
 
 // ──────────────────────────────────────────────
-// FIREBASE REST API - No SDK needed, no CDN
+// FIREBASE REST API - No SDK needed
 // ──────────────────────────────────────────────
 var FB_PROJECT = 'lyons-den-lotto';
 var FB_API_KEY = 'AIzaSyBPo7s9VMXLcihSb2eQcXH16K-PgkfBEvQ';
-var FB_BASE = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents';
-var FB_DOC  = FB_BASE + '/gamestate/main';
-var fbPollTimer = null;
-var fbLastHash = '';
+var FB_BASE    = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents';
+var FB_DOC     = FB_BASE + '/gamestate/main';
+var fbPollTimer   = null;
+var fbLastUpdate  = '';
+var fbConnected   = false;
 
-// Convert JS object to Firestore REST format
 function toFirestore(obj) {
   if (obj === null || obj === undefined) return { nullValue: null };
-  if (typeof obj === 'boolean') return { booleanValue: obj };
-  if (typeof obj === 'number') return Number.isInteger(obj) ? { integerValue: String(obj) } : { doubleValue: obj };
-  if (typeof obj === 'string') return { stringValue: obj };
-  if (Array.isArray(obj)) return { arrayValue: { values: obj.map(toFirestore) } };
+  if (typeof obj === 'boolean')  return { booleanValue: obj };
+  if (typeof obj === 'number')   return Number.isInteger(obj) ? { integerValue: String(obj) } : { doubleValue: obj };
+  if (typeof obj === 'string')   return { stringValue: obj };
+  if (Array.isArray(obj))        return { arrayValue: { values: obj.map(toFirestore) } };
   if (typeof obj === 'object') {
     var fields = {};
     Object.keys(obj).forEach(function(k) { fields[k] = toFirestore(obj[k]); });
@@ -2302,16 +2302,15 @@ function toFirestore(obj) {
   return { stringValue: String(obj) };
 }
 
-// Convert Firestore REST format back to JS object
 function fromFirestore(val) {
   if (!val) return null;
-  if ('nullValue' in val) return null;
+  if ('nullValue'    in val) return null;
   if ('booleanValue' in val) return val.booleanValue;
   if ('integerValue' in val) return parseInt(val.integerValue);
-  if ('doubleValue' in val) return val.doubleValue;
-  if ('stringValue' in val) return val.stringValue;
-  if ('arrayValue' in val) return (val.arrayValue.values || []).map(fromFirestore);
-  if ('mapValue' in val) {
+  if ('doubleValue'  in val) return val.doubleValue;
+  if ('stringValue'  in val) return val.stringValue;
+  if ('arrayValue'   in val) return (val.arrayValue.values || []).map(fromFirestore);
+  if ('mapValue'     in val) {
     var out = {};
     var fields = val.mapValue.fields || {};
     Object.keys(fields).forEach(function(k) { out[k] = fromFirestore(fields[k]); });
@@ -2320,55 +2319,62 @@ function fromFirestore(val) {
   return null;
 }
 
-// Save state to Firestore via REST PATCH
+// Save EVERYTHING to Firebase + localStorage
 function fbSave() {
-  var body = {
-    fields: {
-      game:        toFirestore(S.game),
-      players:     toFirestore(S.players),
-      draws:       toFirestore(S.draws),
-      currentDraw: toFirestore(S.currentDraw),
-      pastWinners: toFirestore(S.pastWinners || [])
-    }
-  };
+  localSave();
+  var body = { fields: {
+    game:        toFirestore(S.game),
+    players:     toFirestore(S.players),
+    draws:       toFirestore(S.draws),
+    currentDraw: toFirestore(S.currentDraw !== null ? S.currentDraw : -1),
+    pastWinners: toFirestore(S.pastWinners || [])
+  }};
   fetch(FB_DOC + '?key=' + FB_API_KEY, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
-  }).then(function(r) {
-    if (!r.ok) { r.text().then(function(t){ console.error('fbSave error:', t); }); }
-  }).catch(function(e) {
-    console.error('fbSave failed:', e);
-    localSave();
-  });
-  localSave(); // Always save locally too as backup
+  }).catch(function(e) { console.warn('fbSave failed:', e); });
 }
 
-// Load state from Firestore via REST GET
+// Load from Firebase and merge into S
 function fbLoad(callback) {
   fetch(FB_DOC + '?key=' + FB_API_KEY)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.fields) {
-        var remote = fromFirestore({ mapValue: { fields: data.fields } });
-        if (remote.game)        S.game = remote.game;
-        if (remote.players)     S.players = remote.players;
-        if (remote.draws)       S.draws = remote.draws;
-        if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
-        if (remote.pastWinners) S.pastWinners = remote.pastWinners;
+        var r = fromFirestore({ mapValue: { fields: data.fields } });
+        if (r.game)        S.game = r.game;
+        if (r.players)     S.players = r.players;
+        if (r.draws)       S.draws = r.draws;
+        if (r.currentDraw !== undefined && r.currentDraw !== -1) S.currentDraw = r.currentDraw;
+        if (r.pastWinners) S.pastWinners = r.pastWinners;
+        // Ensure defaults
+        if (!S.game.notifyEmails) S.game.notifyEmails = [];
+        if (!S.game.merchCodes)   S.game.merchCodes = [];
         localSave();
-        // Always re-render home when data loads
-        renderGameBanner();
+        fbConnected = true;
+        fbLastUpdate = data.updateTime || '';
       }
       if (callback) callback();
     })
     .catch(function(e) {
-      console.warn('fbLoad failed, using local state:', e);
+      console.warn('fbLoad failed:', e);
       if (callback) callback();
     });
 }
 
-// Poll Firestore every 8 seconds for live updates
+// Re-render everything based on current page
+function renderAll() {
+  renderGameBanner();
+  var active = document.querySelector('.page.active');
+  if (!active) return;
+  var pg = active.id.replace('page-', '');
+  if (pg === 'results') renderResults();
+  if (pg === 'host')    renderHost();
+  if (pg === 'register') initRegister();
+}
+
+// Poll every 2 seconds - always re-render if data changed
 function startFbPolling() {
   if (fbPollTimer) clearInterval(fbPollTimer);
   fbPollTimer = setInterval(function() {
@@ -2376,41 +2382,35 @@ function startFbPolling() {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (!data || !data.fields) return;
-        var hash = JSON.stringify(data.fields).length + (data.updateTime || '');
-        if (hash === fbLastHash) return; // No change
-        fbLastHash = hash;
-        var remote = fromFirestore({ mapValue: { fields: data.fields } });
-        if (remote.game)        S.game = remote.game;
-        if (remote.players)     S.players = remote.players;
-        if (remote.draws)       S.draws = remote.draws;
-        if (remote.currentDraw !== undefined) S.currentDraw = remote.currentDraw;
-        if (remote.pastWinners) S.pastWinners = remote.pastWinners;
+        var updateTime = data.updateTime || '';
+        // Always render if update time changed
+        if (updateTime && updateTime === fbLastUpdate) return;
+        fbLastUpdate = updateTime;
+        var r = fromFirestore({ mapValue: { fields: data.fields } });
+        if (r.game)        S.game = r.game;
+        if (r.players)     S.players = r.players;
+        if (r.draws)       S.draws = r.draws;
+        if (r.currentDraw !== undefined && r.currentDraw !== -1) S.currentDraw = r.currentDraw;
+        if (r.pastWinners) S.pastWinners = r.pastWinners;
+        if (!S.game.notifyEmails) S.game.notifyEmails = [];
+        if (!S.game.merchCodes)   S.game.merchCodes = [];
         localSave();
-        // Re-render active page
-        var activePage = document.querySelector('.page.active');
-        if (activePage) {
-          var pageId = activePage.id.replace('page-', '');
-          if (pageId === 'home')    renderGameBanner();
-          if (pageId === 'results') renderResults();
-          if (pageId === 'host')    { loadGameSettings(); renderHostPlayers(); renderMerchCodeList(); }
-        }
+        renderAll();
       })
-      .catch(function() {}); // Silent fail on poll errors
-  }, 3000);
+      .catch(function() {});
+  }, 2000);
 }
 
-function save()      { fbSave(); }
+function save()      { fbSave(); renderAll(); }
 function localSave() { try { localStorage.setItem('lyonsden_v2', JSON.stringify(S)); } catch(e) {} }
 
 function initFirebase() {
-  console.log('Connecting to Firebase via REST API...');
   fbLoad(function() {
-    console.log('Firebase connected! Data loaded.');
-    renderGameBanner();
+    console.log('Firebase connected!');
+    renderAll();
     startFbPolling();
   });
 }
-
 
 
 // ── Post-Registration Share ──
