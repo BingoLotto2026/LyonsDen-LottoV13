@@ -1851,8 +1851,8 @@ function renderHostPlayers() {
     var confTag=p.confirmed?'<span class="badge b-gold">✅ Confirmed</span>':'<span class="badge b-muted">⏳ Pending</span>';
     var matchTag=draw?'<span class="badge '+(won?'b-gold':Math.max(mA,mB)>=4?'b-red':'b-muted')+'">'+Math.max(mA,mB)+'/6</span>':'';
     var pct=draw?Math.round(Math.max(mA,mB)/6*100):0;
-    var setAHTML=p.setA.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
-    var setBHTML=p.setB.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
+    var setAHTML=p.setA.map(function(n){return '<div class="m-ball'+(allNums.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
+    var setBHTML=p.setB.map(function(n){return '<div class="m-ball'+(allNums.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
     return '<div class="player-card'+(won?' p-winner':'')+(!p.confirmed&&p.paid&&!p.isFree&&!p.isMerch?' p-pending':'')+'"><div class="p-top"><div class="p-av">'+avHTML+'</div><div style="flex:1;min-width:0;"><div class="p-name">'+p.name+'</div><div class="p-email-lbl">'+p.email+'</div><div style="margin-top:3px;">'+typeTag+' '+confTag+' '+matchTag+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" onclick="togglePaid('+p.id+')" title="Toggle Paid" style="background:rgba(0,230,118,.18);">💰</button><button class="icon-btn" onclick="toggleConfirmed('+p.id+')" title="Confirm Player" style="background:rgba(255,215,0,.18);">✅</button><button class="icon-btn" onclick="removePlayer('+p.id+')" title="Remove" style="background:rgba(200,16,46,.28);">🗑️</button></div></div>'+
       '<div class="mini-row"><span class="mini-lbl">Set A</span><div class="mini-nums">'+setAHTML+'</div></div>'+
       '<div class="mini-row"><span class="mini-lbl">Set B</span><div class="mini-nums">'+setBHTML+'</div></div>'+
@@ -2005,9 +2005,9 @@ function buildDenBoard(scored, draw, animate) {
       '</div>' +
       '<div style="border-top:1px solid rgba(255,255,255,.04);padding-top:8px;">' +
         '<div class="den-set-label">SET A</div>' +
-        '<div class="den-balls">' + ballsHTML(p.setA, draw ? draw.numbers : []) + '</div>' +
+        '<div class="den-balls">' + ballsHTML(p.setA) + '</div>' +
         '<div class="den-set-label" style="margin-top:6px;">SET B</div>' +
-        '<div class="den-balls">' + ballsHTML(p.setB, draw ? draw.numbers : []) + '</div>' +
+        '<div class="den-balls">' + ballsHTML(p.setB) + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2106,8 +2106,8 @@ function lookupPlayer() {
 }
 
 function triggerReveal() {
-  var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
-  if (!draw || !draw.numbers || !draw.numbers.length) { showToast('No draw results to reveal yet!'); return; }
+  var allNums = getAllDrawnNumbers();
+  if (!allNums.length) { showToast('No draw results to reveal yet!'); return; }
   var ov = el('reveal-overlay');
   var row = el('reveal-balls-row');
   var status = el('reveal-status');
@@ -2117,7 +2117,7 @@ function triggerReveal() {
   if (status) status.textContent = '';
   if (closeBtn) closeBtn.style.display = 'none';
   ov.style.display = 'flex';
-  var nums = draw.numbers.slice();
+  var nums = allNums.slice();
   var i = 0;
   function dropNext() {
     if (i >= nums.length) {
@@ -2298,8 +2298,9 @@ function copyWelcomeMsg() {
   if (!confirmed.length) { showToast('No confirmed players yet.'); return; }
   var draw = S.currentDraw !== null ? S.draws[S.currentDraw] : null;
   var lines = confirmed.map(function(p) {
-    var mA = draw ? matchCount(p.setA, draw.numbers) : 0;
-    var mB = draw ? matchCount(p.setB, draw.numbers) : 0;
+    var allN = getAllDrawnNumbers();
+    var mA = allN.length ? matchCount(p.setA, allN) : 0;
+    var mB = allN.length ? matchCount(p.setB, allN) : 0;
     return "Hi " + p.name + "! Welcome to the Lyon\u2019s Den \uD83E\uDD81 Your sets are locked in: Set A [" + p.setA.join(", ") + "] Set B [" + p.setB.join(", ") + "]. Check the live board at bingolotto2026.github.io/LyonsDen-LottoV13. Good luck! \uD83D\uDC51";
   });
   copyText(lines.join("\n---\n"), confirmed.length + " welcome messages copied!");
@@ -2506,4 +2507,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </body>
-</html>
+</html
