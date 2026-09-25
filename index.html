@@ -352,6 +352,7 @@ input:focus,textarea:focus{border-color:var(--gold);}
   <div class="section-pad" style="padding-top:0;">
     <div id="results-draw-label" style="text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:6px;"></div>
     <div id="results-draw-balls" class="draw-balls-row"></div>
+    <div id="draw-history-results"></div>
     <div id="winner-banner-results"></div>
     <div class="bebas" style="font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;">Leaderboard</div>
     <div id="leaderboard"></div>
@@ -423,6 +424,12 @@ input:focus,textarea:focus{border-color:var(--gold);}
       <div class="num-grid" id="host-draw-grid"></div>
       <button class="btn btn-gold" id="host-run-draw" onclick="runDraw()" style="width:100%;" disabled>Run This Draw</button>
     </div>
+
+    <div class="card">
+      <div class="bebas" style="font-size:1rem;letter-spacing:1.5px;color:var(--gold);margin-bottom:9px;">Draw History (<span id="draw-history-count">0</span>)</div>
+      <div id="draw-history-list"></div>
+    </div>
+
     <div id="host-player-list"></div>
   </div>
 </div>
@@ -537,6 +544,29 @@ function getWinners(draw) {
   return S.players.filter(function(p) {
     return matchCount(p.setA, draw.numbers) === 6 || matchCount(p.setB, draw.numbers) === 6;
   });
+}
+
+// Every draw's winners across the whole season, not just the latest draw.
+function getAllWinners() {
+  var out = [];
+  S.draws.forEach(function(draw) {
+    getWinners(draw).forEach(function(p) { out.push({ player: p, draw: draw }); });
+  });
+  return out;
+}
+
+// A player's best match count for each set, checked against EVERY draw entered
+// so far (not just S.currentDraw). This is what keeps Wednesday's near-miss or
+// win from disappearing once Saturday's draw is run.
+function getPlayerBest(p) {
+  var bestA = 0, bestB = 0, won = false, winDraw = null;
+  S.draws.forEach(function(draw) {
+    var mA = matchCount(p.setA, draw.numbers), mB = matchCount(p.setB, draw.numbers);
+    if (mA > bestA) bestA = mA;
+    if (mB > bestB) bestB = mB;
+    if (mA === 6 || mB === 6) { won = true; winDraw = winDraw || draw; }
+  });
+  return { mA: bestA, mB: bestB, best: Math.max(bestA, bestB), won: won, winDraw: winDraw };
 }
 
 var PAGE_IDS = ['home','register','howto','payment','results','host-login','host','winner'];
@@ -831,7 +861,40 @@ function renderHost() {
   sv('stat-players',S.players.length);sv('stat-revenue','$'+col);sv('stat-draws',S.draws.length);
   sv('host-player-count',S.players.length);
   var hd=el('host-draw-date'); if(hd) hd.value=new Date().toISOString().split('T')[0];
-  loadGameSettings(); renderHostDrawGrid(); renderHostPlayers();
+  loadGameSettings(); renderHostDrawGrid(); renderDrawHistory(); renderHostPlayers();
+}
+
+function renderDrawHistory() {
+  var list = el('draw-history-list'); if (!list) return;
+  var cnt = el('draw-history-count'); if (cnt) cnt.textContent = S.draws.length;
+  if (!S.draws.length) { list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);text-align:center;padding:9px;">No draws yet.</div>'; return; }
+  list.innerHTML = S.draws.map(function(d, i) {
+    var isCurrent = i === S.currentDraw;
+    var winners = getWinners(d);
+    var ballsHTML = d.numbers.map(function(n) { return '<div class="m-ball">' + n + '</div>'; }).join('');
+    return '<div style="background:var(--card2);border-radius:10px;padding:9px 10px;margin-bottom:6px;' + (isCurrent ? 'border:1px solid var(--gold);' : '') + '">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">' +
+        '<div style="font-size:.78rem;font-weight:800;">' + (d.date || 'No date') + (isCurrent ? ' <span class="badge b-gold" style="margin-left:4px;">Latest</span>' : '') + '</div>' +
+        '<div style="display:flex;gap:4px;">' +
+          (isCurrent ? '' : '<button class="icon-btn" onclick="setCurrentDraw(' + i + ')" style="background:rgba(255,215,0,.18);" title="Mark as latest draw">⭐</button>') +
+          '<button class="icon-btn" onclick="deleteDraw(' + i + ')" style="background:rgba(200,16,46,.28);" title="Delete this draw">🗑️</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + ballsHTML + '</div>' +
+      (winners.length ? '<div style="font-size:.7rem;color:var(--gold);margin-top:5px;">🏆 ' + winners.map(function(w) { return w.name; }).join(', ') + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function setCurrentDraw(i) { S.currentDraw = i; save(); renderHost(); showToast('Set as latest draw.'); }
+
+function deleteDraw(i) {
+  if (!confirm('Delete this draw? This cannot be undone.')) return;
+  S.draws.splice(i, 1);
+  if (!S.draws.length) S.currentDraw = null;
+  else if (S.currentDraw === i) S.currentDraw = S.draws.length - 1;
+  else if (S.currentDraw !== null && S.currentDraw > i) S.currentDraw--;
+  save(); renderHost();
 }
 
 function loadGameSettings() {
@@ -894,10 +957,10 @@ function renderHostPlayers() {
   var draw=S.currentDraw!==null?S.draws[S.currentDraw]:null;
   if(!S.players.length){list.innerHTML='<div class="empty"><span class="empty-ic">👥</span><p>No players yet.</p></div>';return;}
   list.innerHTML=S.players.map(function(p,idx){
-    var mA=draw?matchCount(p.setA,draw.numbers):0,mB=draw?matchCount(p.setB,draw.numbers):0,won=mA===6||mB===6;
+    var stats=getPlayerBest(p), mA=stats.mA, mB=stats.mB, won=stats.won;
     var typeTag=p.isFree?'<span class="badge b-purple">FREE</span>':'<span class="badge b-green">PAID</span>';
     var confTag=p.confirmed?'<span class="badge b-gold">✓</span>':'<span class="badge b-muted">Pending</span>';
-    var matchTag=draw?'<span class="badge '+(won?'b-gold':Math.max(mA,mB)>=4?'b-red':'b-muted')+'">'+Math.max(mA,mB)+'/6</span>':'';
+    var matchTag=S.draws.length?'<span class="badge '+(won?'b-gold':Math.max(mA,mB)>=4?'b-red':'b-muted')+'">'+Math.max(mA,mB)+'/6</span>':'';
     var setAHTML=p.setA.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
     var setBHTML=p.setB.map(function(n){return '<div class="m-ball'+(draw&&draw.numbers.indexOf(n)>-1?' m-hit':'')+'">'+n+'</div>';}).join('');
     return '<div class="player-card'+(won?' p-winner':'')+'"><div class="p-top"><div class="p-av">👤</div><div style="flex:1;min-width:0;"><div class="p-name">#'+(idx+1)+' '+p.name+'</div><div class="p-email-lbl">'+p.email+'</div><div style="margin-top:3px;">'+typeTag+confTag+matchTag+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" onclick="togglePaid('+p.id+')" style="background:rgba(0,230,118,.18);">💰</button><button class="icon-btn" onclick="toggleConfirmed('+p.id+')" style="background:rgba(255,215,0,.18);">✅</button><button class="icon-btn" onclick="removePlayer('+p.id+')" style="background:rgba(200,16,46,.28);">🗑️</button></div></div>'+
@@ -926,17 +989,36 @@ function startResultsTimer(){
 function renderResults(){
   var draw=S.currentDraw!==null?S.draws[S.currentDraw]:null;
   var lbl=el('results-draw-label'),bls=el('results-draw-balls');
-  if(lbl) lbl.textContent=draw?('Active Draw: '+(draw.date||'No date')):'No active draw yet';
+  if(lbl) lbl.textContent=draw?('Latest Draw: '+(draw.date||'No date')):'No draws entered yet';
   if(bls) bls.innerHTML=draw?draw.numbers.map(function(n){return '<div class="d-ball">'+n+'</div>';}).join(''):'';
+
+  var dhr=el('draw-history-results');
+  if(dhr){
+    var past=S.draws.filter(function(d,i){return i!==S.currentDraw;}).slice().reverse();
+    if(!past.length){ dhr.innerHTML=''; }
+    else {
+      dhr.innerHTML='<div style="text-align:center;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px;">Previous Draws</div>'+
+        past.map(function(d){
+          return '<div style="display:flex;align-items:center;gap:8px;background:var(--card2);border-radius:9px;padding:7px 9px;margin-bottom:5px;">'+
+            '<div style="font-size:.7rem;color:var(--muted);width:78px;flex-shrink:0;">'+(d.date||'No date')+'</div>'+
+            '<div style="display:flex;gap:3px;flex-wrap:wrap;">'+d.numbers.map(function(n){return '<div class="m-ball">'+n+'</div>';}).join('')+'</div>'+
+          '</div>';
+        }).join('');
+    }
+  }
+
+  // Leaderboard is scored cumulatively across every draw entered so far, so a
+  // Wednesday win or near-miss stays visible after Saturday's draw is run.
   var scored=S.players.filter(function(p){return p.confirmed||p.paid;}).map(function(p){
-    var mA=draw?matchCount(p.setA,draw.numbers):0,mB=draw?matchCount(p.setB,draw.numbers):0;
-    return {id:p.id,name:p.name,isFree:p.isFree,setA:p.setA,setB:p.setB,mA:mA,mB:mB,best:Math.max(mA,mB),won:mA===6||mB===6};
+    var stats=getPlayerBest(p);
+    return {id:p.id,name:p.name,isFree:p.isFree,setA:p.setA,setB:p.setB,mA:stats.mA,mB:stats.mB,best:stats.best,won:stats.won};
   }).sort(function(a,b){return b.best-a.best||a.name.localeCompare(b.name);});
-  var winners=scored.filter(function(p){return p.won;});
+
+  var allWinners=getAllWinners();
   var wb=el('winner-banner-results');
   if(wb){
-    if(winners.length){
-      wb.innerHTML='<div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(139,0,0,.06));border:2px solid var(--gold);border-radius:13px;padding:16px;text-align:center;margin:12px 0;"><div style="font-size:2.2rem;">🏆</div><div class="bebas" style="font-size:1.3rem;color:var(--gold);">WINNER'+(winners.length>1?'S':'')+'!</div>'+winners.map(function(w){return '<div style="margin-top:9px;background:rgba(255,215,0,.07);border-radius:9px;padding:9px;"><div style="font-family:Dancing Script,cursive;font-size:1.3rem;color:var(--gold);">'+w.name+'</div></div>';}).join('')+'<button onclick="showLatestWinner()" class="btn btn-red" style="width:100%;margin-top:11px;">Show Winner Screen!</button></div>';
+    if(allWinners.length){
+      wb.innerHTML='<div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(139,0,0,.06));border:2px solid var(--gold);border-radius:13px;padding:16px;text-align:center;margin:12px 0;"><div style="font-size:2.2rem;">🏆</div><div class="bebas" style="font-size:1.3rem;color:var(--gold);">WINNER'+(allWinners.length>1?'S':'')+'!</div>'+allWinners.map(function(w){return '<div style="margin-top:9px;background:rgba(255,215,0,.07);border-radius:9px;padding:9px;"><div style="font-family:Dancing Script,cursive;font-size:1.3rem;color:var(--gold);">'+w.player.name+'</div><div style="font-size:.65rem;color:var(--muted);margin-top:2px;">'+(w.draw.date||'draw')+'</div></div>';}).join('')+'<button onclick="showLatestWinner()" class="btn btn-red" style="width:100%;margin-top:11px;">Show Winner Screen!</button></div>';
     } else wb.innerHTML='';
   }
   var lb=el('leaderboard'); if(!lb) return;
@@ -952,8 +1034,13 @@ function renderResults(){
 }
 
 function showLatestWinner(){
-  var draw=S.currentDraw!==null?S.draws[S.currentDraw]:null; if(!draw) return;
-  var winners=getWinners(draw); if(winners.length) showWinnerScreen(winners[0].name,draw);
+  var draw=S.currentDraw!==null?S.draws[S.currentDraw]:null;
+  var winners=draw?getWinners(draw):[];
+  if(winners.length){ showWinnerScreen(winners[0].name,draw); return; }
+  // No winner on the latest draw specifically — fall back to the most recent
+  // win from any earlier draw so the screen still has someone to show.
+  var all=getAllWinners();
+  if(all.length){ var last=all[all.length-1]; showWinnerScreen(last.player.name,last.draw); }
 }
 
 function showWinnerScreen(name,draw){
